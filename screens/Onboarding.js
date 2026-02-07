@@ -58,12 +58,21 @@ export default function OnboardingScreen({ navigation }) {
     );
 
     // Final loading screen
+    // if (step === 4) {
+    //     return (
+    //         <View style={styles.containerCenter}>
+    //             <Text style={styles.title}>Thank you.</Text>
+    //             <Text style={styles.subtitle}>Making your profile…</Text>
+    //             {loading && <ActivityIndicator size="large" color="#8b4513" />}
+    //         </View>
+    //     );
+    // }
     if (step === 4) {
         return (
             <View style={styles.containerCenter}>
+                <AnimatedVinyl />
                 <Text style={styles.title}>Thank you.</Text>
                 <Text style={styles.subtitle}>Making your profile…</Text>
-                {loading && <ActivityIndicator size="large" color="#8b4513" />}
             </View>
         );
     }
@@ -223,7 +232,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     dropdown: {
-        backgroundColor: '#8b4513',
+        backgroundColor: '#d97a5f',
         borderRadius: 6,
     },
     loginLink: {
