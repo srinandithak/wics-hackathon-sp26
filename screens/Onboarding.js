@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -41,6 +41,7 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Welcome new user…</Text>
 
       {/* Name (required) */}
@@ -138,6 +139,7 @@ export default function OnboardingScreen({ navigation }) {
       >
         <Text style={styles.loginText}>Already have an account? Log in</Text>
       </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
@@ -146,7 +148,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6ecd9',
+  },
+  scrollContent: {
     padding: 24,
+    paddingBottom: 120,
   },
   containerCenter: {
     flex: 1,
