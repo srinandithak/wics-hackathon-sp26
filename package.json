@@ -18,11 +18,8 @@
     "@react-navigation/bottom-tabs": "^7.12.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.28",
-<<<<<<< HEAD
     "@react-navigation/stack": "^7.7.1",
-=======
     "@supabase/supabase-js": "^2.95.3",
->>>>>>> e4fc4d928dcdc96c9ed93f22e66ebf29e788c936
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.11",
