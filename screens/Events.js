@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -22,17 +22,37 @@ const cardShadow = Platform.select({
   default: {},
 });
 
+// Dummy events with friend counts – sorted by most friends first
+const EVENTS_RAW = [
+  { id: 'e1', title: 'House Show - West Campus', day: 15, month: 'FEB', time: '8:00 PM', location: '2400 Nueces St', venueType: 'house party', friendsGoing: ['Jordan', 'Sam', 'Alex'] },
+  { id: 'e2', title: 'Open Mic Night', day: 21, month: 'FEB', time: '7:00 PM', location: 'Cactus Cafe', venueType: 'venue', friendsGoing: ['Jordan', 'Sam'] },
+  { id: 'e3', title: 'Indie Night at the Union', day: 22, month: 'FEB', time: '9:00 PM', location: 'Texas Union', venueType: 'venue', friendsGoing: ['Sam'] },
+  { id: 'e4', title: 'Pop-up at Co-op', day: 28, month: 'FEB', time: '6:00 PM', location: 'University Co-op', venueType: 'pop-up', friendsGoing: [] },
+];
+
+function getFriendsLabel(friendsGoing) {
+  const n = friendsGoing.length;
+  if (n === 0) return 'No friends going';
+  if (n === 1) return `${friendsGoing[0]} is going`;
+  if (n === 2) return `${friendsGoing[0]} and ${friendsGoing[1]} are going`;
+  return `${friendsGoing[0]} and ${n - 1} other${n - 1 === 1 ? '' : 's'} going`;
+}
+
 export default function Events({ navigation }) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
 
+  const events = useMemo(() => {
+    return [...EVENTS_RAW].sort((a, b) => b.friendsGoing.length - a.friendsGoing.length);
+  }, []);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <Text style={[styles.title, { color: colors.text }]}>Upcoming Events</Text>
       <Text style={[styles.subtitle, { color: colors.icon }]}>
-        Shows & pop-ups around campus
+        Shows & pop-ups · More friends = higher in the list
       </Text>
 
       <ScrollView
@@ -40,51 +60,52 @@ export default function Events({ navigation }) {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
-          <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
-            <Text style={styles.dateDay}>15</Text>
-            <Text style={styles.dateMonth}>FEB</Text>
-          </View>
-          <View style={styles.cardBody}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>House Show - West Campus</Text>
-            <View style={styles.metaRow}>
-              <Ionicons name="time-outline" size={14} color={colors.icon} />
-              <Text style={[styles.cardMeta, { color: colors.icon }]}> 8:00 PM</Text>
+        {events.map((ev) => {
+          const friendCount = ev.friendsGoing.length;
+          const friendsLabel = getFriendsLabel(ev.friendsGoing);
+          return (
+            <View key={ev.id} style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
+              <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
+                <Text style={styles.dateDay}>{ev.day}</Text>
+                <Text style={styles.dateMonth}>{ev.month}</Text>
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{ev.title}</Text>
+                <View style={styles.metaRow}>
+                  <Ionicons name="time-outline" size={14} color={colors.icon} />
+                  <Text style={[styles.cardMeta, { color: colors.icon }]}> {ev.time}</Text>
+                </View>
+                <View style={styles.metaRow}>
+                  <Ionicons name="location-outline" size={14} color={colors.icon} />
+                  <Text style={[styles.cardLocation, { color: colors.icon }]}> {ev.location}</Text>
+                </View>
+                <View style={[styles.friendsRow, { backgroundColor: friendCount > 0 ? colors.tint + '18' : colors.icon + '18' }]}>
+                  <Ionicons
+                    name="people-outline"
+                    size={14}
+                    color={friendCount > 0 ? colors.tint : colors.icon}
+                  />
+                  <Text
+                    style={[
+                      styles.friendsLabel,
+                      { color: friendCount > 0 ? colors.tint : colors.icon },
+                    ]}
+                  >
+                    {friendsLabel}
+                  </Text>
+                  {friendCount > 0 && (
+                    <View style={[styles.friendCountBadge, { backgroundColor: colors.tint }]}>
+                      <Text style={styles.friendCountText}>{friendCount}</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
+                  <Text style={[styles.pillText, { color: colors.tint }]}>{ev.venueType}</Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.metaRow}>
-              <Ionicons name="location-outline" size={14} color={colors.icon} />
-              <Text style={[styles.cardLocation, { color: colors.icon }]}> 2400 Nueces St</Text>
-            </View>
-            <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
-              <Text style={[styles.pillText, { color: colors.tint }]}>house party</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
-          <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
-            <Text style={styles.dateDay}>21</Text>
-            <Text style={styles.dateMonth}>FEB</Text>
-          </View>
-          <View style={styles.cardBody}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Open Mic Night</Text>
-            <View style={styles.metaRow}>
-              <Ionicons name="time-outline" size={14} color={colors.icon} />
-              <Text style={[styles.cardMeta, { color: colors.icon }]}> 7:00 PM</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Ionicons name="location-outline" size={14} color={colors.icon} />
-              <Text style={[styles.cardLocation, { color: colors.icon }]}> Cactus Cafe</Text>
-            </View>
-            <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
-              <Text style={[styles.pillText, { color: colors.tint }]}>venue</Text>
-            </View>
-          </View>
-        </View>
-
-        <Text style={[styles.placeholder, { color: colors.icon }]}>
-          Events will load here
-        </Text>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,21 +177,44 @@ const styles = StyleSheet.create({
   cardLocation: {
     fontSize: 14,
   },
+  friendsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  friendsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  friendCountBadge: {
+    marginLeft: 8,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  friendCountText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
   pill: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
-    marginTop: 10,
+    marginTop: 8,
   },
   pillText: {
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'capitalize',
-  },
-  placeholder: {
-    fontSize: 14,
-    marginTop: 12,
-    fontStyle: 'italic',
   },
 });
