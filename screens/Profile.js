@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
-import { useApp } from '../app/contexts/AppContext';
+import { useApp } from '../contexts/AppContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 
 const cardShadow = Platform.select({
@@ -88,8 +88,8 @@ export default function Profile({ navigation }) {
           style: 'destructive',
           onPress: () => {
             logout();
-            // Navigate to login if you have one
-            // navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            // Navigate to Login by accessing parent Stack navigator
+            navigation.getParent()?.navigate('Login');
           },
         },
       ]
