@@ -1,58 +1,59 @@
-import { View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-// import { styles } from '../styles/styles';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const BottomNavigation = ({ navigation }) => {
   return (
     <View style={styles.bottomRowContainer}>
       <View style={styles.bottomRow}>
-        {/* artists button */}
-        <Icon.Button
-          color="black"
-          backgroundColor="67DE8F"
-          name="music"
-          size={40}
+        <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Artists' })}
-        />
-  
-        {/* friends button */}
-        <Icon.Button
-          color="black"
-          backgroundColor="67DE8F"
-          name="users"
-          size={40}
+          style={styles.tabButton}
+        >
+          <Ionicons name="musical-notes" size={28} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Friends' })}
-        />
-  
-        {/* Events page */}
-        <Icon.Button
-          color="black"
-          backgroundColor="67DE8F"
-          name="map-marker" 
-          size={40}
+          style={styles.tabButton}
+        >
+          <Ionicons name="people" size={28} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Events' })}
-        />
-
-        {/* calendar icon */}
-        <Icon.Button
-          color="black"
-          backgroundColor="67DE8F"
-          name="calendar"
-          size={40}
+          style={styles.tabButton}
+        >
+          <Ionicons name="location" size={28} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Calendar' })}
-        />
-  
-        {/* profile icon */}
-        <Icon.Button
-          color="black"
-          backgroundColor="67DE8F"
-          name="user"
-          size={40}
+          style={styles.tabButton}
+        >
+          <Ionicons name="calendar" size={28} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Profile' })}
-        />
+          style={styles.tabButton}
+        >
+          <Ionicons name="person" size={28} color="black" />
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  bottomRowContainer: {
+    backgroundColor: '#67DE8F',
+    paddingVertical: 8,
+    paddingBottom: 24,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  tabButton: {
+    padding: 8,
+  },
+});
 
 export default BottomNavigation;
