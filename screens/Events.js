@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
-import discoverStyles from '../styles/discoverStyles';
+import { discoverStyles, DiscoverColors } from '../styles/styles';
 
 const cardShadow = Platform.select({
   ios: {
@@ -65,23 +65,18 @@ export default function Events({ navigation }) {
   return (
     <SafeAreaView style={discoverStyles.container} edges={['top']}>
       <Text style={discoverStyles.title}>Discover Events</Text>
-      <Text style={[eventStyles.subtitle, { color: colors.icon }]}>
-        Shows & pop-ups · More friends = higher in the list
-      </Text>
-
       <View style={discoverStyles.searchWrap}>
         <TextInput
           style={discoverStyles.searchInput}
           placeholder="Search events..."
-          placeholderTextColor="#687076"
+          placeholderTextColor={DiscoverColors.placeholder}
           value={searchText}
           onChangeText={setSearchText}
         />
       </View>
-
       <ScrollView
-        style={eventStyles.list}
-        contentContainerStyle={eventStyles.listContent}
+        style={discoverStyles.list}
+        contentContainerStyle={discoverStyles.listContent}
         showsVerticalScrollIndicator={false}
       >
         {events.map((ev) => {
@@ -157,17 +152,6 @@ export default function Events({ navigation }) {
 }
 
 const eventStyles = StyleSheet.create({
-  subtitle: {
-    fontSize: 15,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 32,
-  },
   card: {
     flexDirection: 'row',
     borderRadius: 16,
