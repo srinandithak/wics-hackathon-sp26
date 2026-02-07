@@ -42,7 +42,7 @@ const BottomNavigation = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   bottomRowContainer: {
-    backgroundColor: '#67DE8F',
+    backgroundColor: '#db775b',
     paddingVertical: 8,
     paddingBottom: 24,
   },
