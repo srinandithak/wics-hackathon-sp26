@@ -10,7 +10,6 @@ import {
   Animated,
   Modal,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
 import vinyl from '../assets/images/vinyl.png';
@@ -38,7 +37,7 @@ export default function Artists({ navigation }) {
     if (selectedArtist) {
       Animated.spring(flipAnim, {
         toValue: 1,
-        useNativeDriver: true,
+        useNativeDriver: false, // Changed to false for better text rendering
         tension: 40,
         friction: 7,
       }).start();
@@ -59,7 +58,7 @@ export default function Artists({ navigation }) {
     Animated.timing(flipAnim, {
       toValue: 0,
       duration: 300,
-      useNativeDriver: true,
+      useNativeDriver: false, // Changed to false for better text rendering
     }).start(() => setSelectedArtist(null));
   };
 
@@ -75,7 +74,7 @@ export default function Artists({ navigation }) {
 
   const scaleInterpolate = flipAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.5],
+    outputRange: [1, 1.2], // Reduced from 1.5 to 1.2
   });
 
   const renderArtist = ({ item }) => (
@@ -96,11 +95,10 @@ export default function Artists({ navigation }) {
         <TextInput
           style={discoverStyles.searchInput}
           placeholder="Search artists..."
-          placeholderTextColor={DiscoverColors.white}
+          placeholderTextColor={DiscoverColors.placeholder}
           value={searchText}
           onChangeText={setSearchText}
         />
-        <Ionicons name="search" size={22} color={DiscoverColors.white} style={discoverStyles.searchIcon} />
       </View>
       <View style={discoverStyles.list}>
         <FlatList
@@ -151,13 +149,22 @@ export default function Artists({ navigation }) {
                 ]}
               >
                 <View style={artistStyles.vinylBack}>
-                  <Text style={artistStyles.vinylBackTitle}>
+                  <Text 
+                    style={artistStyles.vinylBackTitle}
+                    allowFontScaling={false}
+                  >
                     {selectedArtist?.name}
                   </Text>
-                  <Text style={artistStyles.vinylBackText}>
+                  <Text 
+                    style={artistStyles.vinylBackText}
+                    allowFontScaling={false}
+                  >
                     Bio: {selectedArtist?.bio || 'No bio available'}
                   </Text>
-                  <Text style={artistStyles.vinylBackText}>
+                  <Text 
+                    style={artistStyles.vinylBackText}
+                    allowFontScaling={false}
+                  >
                     Genre: {selectedArtist?.genre || 'Unknown'}
                   </Text>
                 </View>
@@ -187,8 +194,8 @@ const artistStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   flipContainer: {
-    width: 300,
-    height: 300,
+    width: 240, // Reduced from 300
+    height: 240, // Reduced from 300
   },
   flipCard: {
     width: '100%',
@@ -203,12 +210,12 @@ const artistStyles = StyleSheet.create({
   },
   flipCardBack: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 150,
+    borderRadius: 120, // Adjusted to match new size (half of 240)
     padding: 20,
   },
   vinylLarge: {
-    width: 300,
-    height: 300,
+    width: 240, // Reduced from 300
+    height: 240, // Reduced from 300
   },
   vinylBack: {
     alignItems: 'center',
@@ -216,16 +223,18 @@ const artistStyles = StyleSheet.create({
     width: '100%',
   },
   vinylBackTitle: {
-    fontSize: 24,
+    fontSize: 22, // Slightly smaller
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 16,
+    marginBottom: 12,
     textAlign: 'center',
+    includeFontPadding: false, // Helps with text rendering on Android
   },
   vinylBackText: {
-    fontSize: 14,
+    fontSize: 13, // Slightly smaller
     color: '#ccc',
-    marginBottom: 8,
+    marginBottom: 6,
     textAlign: 'center',
+    includeFontPadding: false, // Helps with text rendering on Android
   },
 });
