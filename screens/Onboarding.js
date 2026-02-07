@@ -24,7 +24,7 @@ const AnimatedVinyl = () => {
 
     return (
         <Animated.Image
-            source={require('../assets/vinyl.png')}
+            source={require('../assets/images/vinyl.png')}
             style={{ width: 60, height: 60, transform: [{ rotate: spin }], marginBottom: 20 }}
         />
     );
