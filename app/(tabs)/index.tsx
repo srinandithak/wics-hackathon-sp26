@@ -98,8 +98,8 @@
 // });
 
 import React from 'react';
-import Artists from '../../screens/Artists'; // adjust path if needed
+import AppNavigator from '../../AppNavigator';
 
 export default function Index() {
-  return <Artists />;
+  return <AppNavigator />;
 }
