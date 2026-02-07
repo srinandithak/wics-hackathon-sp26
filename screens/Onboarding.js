@@ -8,8 +8,8 @@
 // } from 'react-native';
 // import { SafeAreaView } from 'react-native-safe-area-context';
 // import { Ionicons } from '@expo/vector-icons';
-// import { useColorScheme } from '../hooks/use-color-scheme';
-// import { Colors } from '../constants/theme';
+import { useColorScheme } from '../hooks/use-color-scheme';
+import { Colors } from '../constants/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
@@ -142,9 +142,8 @@ export default function Onboarding({ navigation }) {
             <TouchableOpacity
                 style={styles.loginLink}
                 onPress={() => navigation.navigate('Login')}
-                activeOpacity={0.7}
-            >
-                <Text style={{ color: colors.tint, fontSize: 15 }}>Already have an account? Log in</Text>
+                activeOpacity={0.7}>
+                <Text style={{ fontSize: 15 }}>Already have an account? Log in</Text>
             </TouchableOpacity>
         </View>
     );
