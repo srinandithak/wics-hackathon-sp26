@@ -28,5 +28,5 @@ const Artists = ({ navigation }) => {
     );
 };
 
-export default HomeScreen;
+export default Artists;
 
