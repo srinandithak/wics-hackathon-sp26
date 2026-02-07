@@ -5,15 +5,9 @@ export default function OnBoarding({ navigation }) {
   
     return (
         <View>
-            <View style={styles.container}>
-              <Image style={styles.image} />
-            </View>
-            <View style={styles.container2}>
-            <TouchableOpacity style={styles.logoLine}></TouchableOpacity>
-            </View>
-            <Text style={styles.heading}>Welcome to Music App</Text>
-            <View style={styles.buttonContainer}>
-              <View style={{margin: 20, padding: 10, width: 300, height: 300}}>
+            <Text>Welcome to Music App</Text>
+            <View>
+              <View>
                 <Button title="Login" onPress={() => navigation.navigate('Login')}></Button>
               </View>
 

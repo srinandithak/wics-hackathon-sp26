@@ -6,9 +6,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const Profile = ({ navigation }) => {
 
     return (
-        <View style={styles.container}>
-            <View style={styles.topRow}>
-                <Text style={styles.heading}>Music App - Profile Page</Text>
+        <View>
+            <View>
+                <Text>Music App - Profile Page</Text>
                 {/* <Text style={styles.write}>Post</Text>
                 <Icon.Button
                     name="pencil"
@@ -21,7 +21,7 @@ const Profile = ({ navigation }) => {
             </View>
 
             <View>
-              <TextInput style={styles.searchBar} placeholder="Search" />
+              <TextInput placeholder="Search" />
             </View>
 
         </View>
