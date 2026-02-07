@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Profile from './screens/Profile';
-import OnBoarding from './screens/Onboarding';
+import Onboarding from './screens/Onboarding';
 import Login from './screens/Login';
 import Artists from './screens/Artists';
 import Calendar from './screens/Calendar';
@@ -33,7 +33,7 @@ const AppNavigator = () => {
             <PostsProvider>
                 <NavigationContainer>
                     <Stack.Navigator>
-                        <Stack.Screen name="OnBoarding" component={WelcomeScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="Onboarding" component={Onboarding} options={{ headerShown: false }} />
                         <Stack.Screen name="Main" component={MainNavigator} options={{ headerShown: false }} />
                         <Stack.Screen name="Login" component={Login} />
                     </Stack.Navigator>
