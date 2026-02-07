@@ -1,21 +1,36 @@
-// import React from 'react';
-// import {
-//   StyleSheet,
-//   Text,
-//   View,
-//   TouchableOpacity,
-//   Platform,
-// } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import { Ionicons } from '@expo/vector-icons';
-// import { useColorScheme } from '../hooks/use-color-scheme';
-// import { Colors } from '../constants/theme';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function Onboarding({ navigation }) {
+const AnimatedVinyl = () => {
+    const rotateAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(rotateAnim, {
+                toValue: 1,
+                duration: 1500,
+                easing: Easing.linear,
+                useNativeDriver: true,
+            })
+        ).start();
+    }, []);
+
+    const spin = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
+
+    return (
+        <Animated.Image
+            source={require('../assets/images/vinyl.png')}
+            style={{ width: 60, height: 60, transform: [{ rotate: spin }], marginBottom: 20 }}
+        />
+    );
+};
+
+export default function OnboardingScreen({ navigation }) {
     const [step, setStep] = useState(0);
     const [name, setName] = useState('');
     const [instagram, setInstagram] = useState('');
@@ -23,21 +38,29 @@ export default function Onboarding({ navigation }) {
     const [artist, setArtist] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Handle final loading + navigation
     useEffect(() => {
         if (step === 4) {
-            setLoading(true);
             const timer = setTimeout(() => {
-                setLoading(false);
+                navigation.replace('Main');
             }, 5000);
+
             return () => clearTimeout(timer);
         }
     }, [step]);
 
-    const vinyl = <MaterialCommunityIcons name="record-vinyl" size={28} color="#2b1a0f" />;
 
+    const vinylIcon = (
+        <Image
+            source={require('../assets/images/vinyl.png')}
+            style={{ width: 26, height: 26 }}
+        />
+    );
+
+    // Final loading screen
     if (step === 4) {
         return (
-            <View style={styles.container}>
+            <View style={styles.containerCenter}>
                 <Text style={styles.title}>Thank you.</Text>
                 <Text style={styles.subtitle}>Making your profile…</Text>
                 {loading && <ActivityIndicator size="large" color="#8b4513" />}
@@ -45,117 +68,128 @@ export default function Onboarding({ navigation }) {
         );
     }
 
-
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Welcome new user…</Text>
+            <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+                <Text style={styles.title}>Welcome new user…</Text>
 
-            {step >= 0 && (
-                <View style={styles.questionRow}>
-                    {vinyl}
-                    <View style={styles.inputBlock}>
-                        <Text style={styles.label}>Enter your first and last name</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={name}
-                            onChangeText={setName}
-                            onSubmitEditing={() => name.trim() && setStep(1)}
-                            returnKeyType="next"
-                        />
-                    </View>
-                </View>
-            )}
-
-            {step >= 1 && (
-                <View style={styles.questionRow}>
-                    {vinyl}
-                    <View style={styles.inputBlock}>
-                        <Text style={styles.label}>Enter your Instagram (optional)</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={instagram}
-                            onChangeText={setInstagram}
-                            onSubmitEditing={() => setStep(2)}
-                            returnKeyType="next"
-                        />
-                    </View>
-                </View>
-            )}
-
-            {step >= 2 && (
-                <View style={styles.questionRow}>
-                    {vinyl}
-                    <View style={styles.inputBlock}>
-                        <Text style={styles.label}>Enter your favorite genre of music</Text>
-                        <View style={styles.dropdown}>
-                            <Picker
-                                selectedValue={genre}
-                                onValueChange={(itemValue) => {
-                                    setGenre(itemValue);
-                                    if (itemValue) setStep(3);
-                                }}>
-                                <Picker.Item label="Select a genre…" value="" />
-                                <Picker.Item label="Pop" value="Pop" />
-                                <Picker.Item label="Hip Hop" value="Hip Hop" />
-                                <Picker.Item label="R&B" value="R&B" />
-                                <Picker.Item label="Indie" value="Indie" />
-                                <Picker.Item label="Rock" value="Rock" />
-                                <Picker.Item label="Electronic" value="Electronic" />
-                                <Picker.Item label="Jazz" value="Jazz" />
-                            </Picker>
+                {/* Name (required) */}
+                {step >= 0 && (
+                    <View style={styles.row}>
+                        {vinylIcon}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Enter your first and last name</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={name}
+                                onChangeText={setName}
+                                returnKeyType="next"
+                                onSubmitEditing={() => name.trim() && setStep(1)}
+                            />
                         </View>
                     </View>
-                </View>
-            )}
+                )}
 
-            {step >= 3 && (
-                <View style={styles.questionRow}>
-                    {vinyl}
-                    <View style={styles.inputBlock}>
-                        <Text style={styles.label}>Enter your favorite artists</Text>
-                        <View style={styles.dropdown}>
-                            <Picker
-                                selectedValue={artist}
-                                onValueChange={(itemValue) => {
-                                    setArtist(itemValue);
-                                    if (itemValue) setStep(4);
-                                }}>
-                                <Picker.Item label="Select an artist…" value="" />
-                                <Picker.Item label="Local UT Artist" value="Local UT Artist" />
-                                <Picker.Item label="Taylor Swift" value="Taylor Swift" />
-                                <Picker.Item label="Drake" value="Drake" />
-                                <Picker.Item label="Frank Ocean" value="Frank Ocean" />
-                                <Picker.Item label="Bad Bunny" value="Bad Bunny" />
-                                <Picker.Item label="Phoebe Bridgers" value="Phoebe Bridgers" />
-                            </Picker>
+                {/* Instagram (optional) */}
+                {step >= 1 && (
+                    <View style={styles.row}>
+                        {vinylIcon}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Enter your Instagram (optional)</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={instagram}
+                                onChangeText={setInstagram}
+                                returnKeyType="next"
+                                onSubmitEditing={() => setStep(2)}
+                            />
                         </View>
                     </View>
-                </View>
-            )}
+                )}
 
-            {step < 3 && name.trim() && (
-                <TouchableOpacity style={styles.nextButton} onPress={() => setStep(step + 1)}>
-                    <Text style={styles.nextText}>Next</Text>
+                {/* Genre (required) */}
+                {step >= 2 && (
+                    <View style={styles.row}>
+                        {vinylIcon}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Enter your favorite genre of music</Text>
+                            <View style={styles.dropdown}>
+                                <Picker
+                                    selectedValue={genre}
+                                    onValueChange={(value) => {
+                                        setGenre(value);
+                                        if (value) setStep(3);
+                                    }}>
+                                    <Picker.Item label="Select a genre…" value="" />
+                                    <Picker.Item label="Pop" value="Pop" />
+                                    <Picker.Item label="Hip Hop" value="Hip Hop" />
+                                    <Picker.Item label="R&B" value="R&B" />
+                                    <Picker.Item label="Indie" value="Indie" />
+                                    <Picker.Item label="Rock" value="Rock" />
+                                    <Picker.Item label="Electronic" value="Electronic" />
+                                    <Picker.Item label="Jazz" value="Jazz" />
+                                </Picker>
+                            </View>
+                        </View>
+                    </View>
+                )}
+
+                {/* Artists (required) */}
+                {step >= 3 && (
+                    <View style={styles.row}>
+                        {vinylIcon}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Enter your favorite artists</Text>
+                            <View style={styles.dropdown}>
+                                <Picker
+                                    selectedValue={artist}
+                                    onValueChange={(value) => {
+                                        setArtist(value);
+                                        if (value) setStep(4);
+                                    }}>
+                                    <Picker.Item label="Select an artist…" value="" />
+                                    <Picker.Item label="Local UT Artist" value="Local UT Artist" />
+                                    <Picker.Item label="Taylor Swift" value="Taylor Swift" />
+                                    <Picker.Item label="Drake" value="Drake" />
+                                    <Picker.Item label="Frank Ocean" value="Frank Ocean" />
+                                    <Picker.Item label="Bad Bunny" value="Bad Bunny" />
+                                    <Picker.Item label="Sabrina Carpenter" value="Sabrina Carpenter" />
+                                </Picker>
+                            </View>
+                        </View>
+                    </View>
+                )}
+
+                {/* Login link */}
+                <TouchableOpacity
+                    style={styles.loginLink}
+                    onPress={() => navigation.navigate('Login')}
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.loginText}>Already have an account? Log in</Text>
                 </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-                style={styles.loginLink}
-                onPress={() => navigation.navigate('Login')}
-                activeOpacity={0.7}
-            >
-                <Text style={{ color: colors.tint, fontSize: 15 }}>Already have an account? Log in</Text>
-            </TouchableOpacity>
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    vinylWrapper: {
+        marginTop: 2,
+    },
     container: {
         flex: 1,
         backgroundColor: '#f6ecd9',
+    },
+    scrollContent: {
         padding: 24,
+        paddingBottom: 120,
+    },
+    containerCenter: {
+        flex: 1,
+        backgroundColor: '#f6ecd9',
         justifyContent: 'center',
+        alignItems: 'center',
     },
     title: {
         fontSize: 24,
@@ -164,40 +198,41 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: 16,
-        marginBottom: 16,
+        marginBottom: 20,
     },
-    questionRow: {
+    row: {
         flexDirection: 'row',
         alignItems: 'flex-start',
         marginBottom: 20,
+        paddingHorizontal: 4,
     },
-    inputBlock: {
+    block: {
         flex: 1,
-        marginLeft: 12,
+        marginLeft: 10,
+        marginRight: 6,
     },
     label: {
         fontSize: 14,
         marginBottom: 6,
     },
     input: {
-        backgroundColor: '#8b4513',
+        backgroundColor: '#d97a5f',
         color: 'white',
-        padding: 10,
-        borderRadius: 6,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderRadius: 10,
     },
     dropdown: {
         backgroundColor: '#8b4513',
         borderRadius: 6,
     },
-    nextButton: {
-        marginTop: 20,
-        backgroundColor: '#2b1a0f',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
+    loginLink: {
+        position: 'absolute',
+        bottom: 30,
+        alignSelf: 'center',
     },
-    nextText: {
-        color: 'white',
-        fontWeight: '600',
+    loginText: {
+        fontSize: 15,
+        textDecorationLine: 'underline',
     },
 });
