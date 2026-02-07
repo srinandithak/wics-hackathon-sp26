@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from '../app/contexts/AppContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 
 const cardShadow = Platform.select({
