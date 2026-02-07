@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function OnboardingScreen({ navigation }) {
     const [step, setStep] = useState(0);
@@ -27,7 +25,7 @@ export default function OnboardingScreen({ navigation }) {
 
     const vinylIcon = (
         <Image
-            source={require('../assets/vinyl.png')} 
+            source={require('../assets/images/vinyl.png')} 
             style={{ width: 26, height: 26 }}
         />
     );
