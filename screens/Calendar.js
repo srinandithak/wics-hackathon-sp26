@@ -1,53 +1,251 @@
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useMemo, useState } from 'react';
 import {
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
+import { useColorScheme } from '../hooks/use-color-scheme';
+
+const cardShadow = Platform.select({
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  android: { elevation: 3 },
+  default: {},
+});
+
+const MONTH_ORDER = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+function getDaysInMonth(year, monthIndex) {
+  const lastDay = new Date(year, monthIndex + 1, 0);
+  return lastDay.getDate();
+}
+
+function getFirstWeekday(year, monthIndex) {
+  return new Date(year, monthIndex, 1).getDay();
+}
 
 export default function Calendar({ navigation }) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
-  const surfaceBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)';
+  const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
+  const { confirmedEvents } = useConfirmedEvents();
+
+  const [viewYear, setViewYear] = useState(2026);
+  const [viewMonth, setViewMonth] = useState(1); // Feb = 1
+  const [selectedDate, setSelectedDate] = useState(null); // { day, month } or null
+
+  const sortedEvents = useMemo(() => {
+    return [...confirmedEvents].sort((a, b) => {
+      const monthDiff = MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month);
+      if (monthDiff !== 0) return monthDiff;
+      return (a.day || 0) - (b.day || 0);
+    });
+  }, [confirmedEvents]);
+
+  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
+  const firstWeekday = getFirstWeekday(viewYear, viewMonth);
+  const monthLabel = MONTH_ORDER[viewMonth];
+
+  const daysWithEvents = useMemo(() => {
+    const set = new Set();
+    confirmedEvents.forEach((ev) => {
+      if (ev.month === monthLabel) set.add(ev.day);
+    });
+    return set;
+  }, [confirmedEvents, monthLabel]);
+
+  const calendarCells = useMemo(() => {
+    const cells = [];
+    const total = firstWeekday + daysInMonth;
+    const rows = 6;
+    for (let i = 0; i < rows * 7; i++) {
+      if (i < firstWeekday) {
+        cells.push({ type: 'empty' });
+      } else if (i < firstWeekday + daysInMonth) {
+        const day = i - firstWeekday + 1;
+        cells.push({ type: 'day', day });
+      } else {
+        cells.push({ type: 'empty' });
+      }
+    }
+    return cells;
+  }, [firstWeekday, daysInMonth]);
+
+  const filteredEvents = useMemo(() => {
+    if (!selectedDate) return sortedEvents;
+    return sortedEvents.filter(
+      (ev) => ev.day === selectedDate.day && ev.month === selectedDate.month
+    );
+  }, [sortedEvents, selectedDate]);
+
+  const handleDayPress = (day) => {
+    const newSel = { day, month: monthLabel };
+    const isSame = selectedDate && selectedDate.day === day && selectedDate.month === monthLabel;
+    setSelectedDate(isSame ? null : newSel);
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[styles.title, { color: colors.text }]}>Calendar</Text>
+      <Text style={[styles.title, { color: colors.text }]}>My Calendar</Text>
       <Text style={[styles.subtitle, { color: colors.icon }]}>
-        See when your followed artists are playing
+        Events you're confirmed for
       </Text>
 
-      <View style={[styles.calendarPlaceholder, { backgroundColor: surfaceBg }]}>
-        <View style={[styles.monthHeader, { borderBottomColor: colors.icon + '33' }]}>
-          <Text style={[styles.monthTitle, { color: colors.text }]}>February 2026</Text>
+      <View style={[styles.calendarCard, { backgroundColor: colors.background }]}>
+        <View style={styles.calendarHeader}>
+          <TouchableOpacity
+            onPress={() => {
+              setViewMonth((m) => (m === 0 ? 11 : m - 1));
+              setSelectedDate(null);
+            }}
+            style={styles.arrowBtn}
+            hitSlop={12}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.monthTitle, { color: colors.text }]}>
+            {MONTH_NAMES[viewMonth]} {viewYear}
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              setViewMonth((m) => (m === 11 ? 0 : m + 1));
+              setSelectedDate(null);
+            }}
+            style={styles.arrowBtn}
+            hitSlop={12}
+          >
+            <Ionicons name="chevron-forward" size={24} color={colors.text} />
+          </TouchableOpacity>
         </View>
         <View style={styles.weekdayRow}>
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <Text key={i} style={[styles.weekday, { color: colors.icon }]}>{d}</Text>
+          {WEEKDAYS.map((d, i) => (
+            <Text key={i} style={[styles.weekday, { color: colors.icon }]}>
+              {d}
+            </Text>
           ))}
         </View>
         <View style={styles.grid}>
-          {Array.from({ length: 35 }, (_, i) => (
-            <View key={i} style={[styles.cell, { backgroundColor: 'transparent' }]}>
-              <Text style={[styles.cellText, { color: i >= 5 && i < 28 ? colors.text : colors.icon }]}>
-                {i < 5 ? '' : i - 4 > 28 ? '' : i - 4}
-              </Text>
-            </View>
-          ))}
-        </View>
-        <View style={styles.legend}>
-          <Ionicons name="calendar-outline" size={24} color={colors.icon} />
-          <Text style={[styles.placeholderText, { color: colors.icon }]}>
-            Calendar view will go here (e.g. react-native-calendars)
-          </Text>
+          {calendarCells.map((cell, i) => {
+            if (cell.type === 'empty') {
+              return <View key={i} style={styles.cell} />;
+            }
+            const day = cell.day;
+            const hasEvent = daysWithEvents.has(day);
+            const isSelected =
+              selectedDate && selectedDate.day === day && selectedDate.month === monthLabel;
+            return (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.cell,
+                  styles.cellDay,
+                  hasEvent && [styles.cellHasEvent, { backgroundColor: colors.tint + '20' }],
+                  isSelected && [styles.cellSelected, { backgroundColor: colors.tint }],
+                ]}
+                onPress={() => handleDayPress(day)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.cellDayText,
+                    { color: isSelected ? '#fff' : colors.text },
+                  ]}
+                >
+                  {day}
+                </Text>
+                {hasEvent && !isSelected && (
+                  <View style={[styles.dot, { backgroundColor: colors.tint }]} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
+
+      <View style={styles.titleRow}>
+        <Text style={[styles.listSectionTitle, { color: colors.text }]}>
+          {selectedDate
+            ? `Events on ${MONTH_NAMES[viewMonth].slice(0, 3)} ${selectedDate.day}`
+            : 'All events'}
+        </Text>
+        {selectedDate ? (
+          <TouchableOpacity
+            onPress={() => setSelectedDate(null)}
+            activeOpacity={0.8}
+            style={styles.showAllDaysLink}
+          >
+            <Text style={{ color: colors.tint, fontSize: 14, fontWeight: '600' }}>
+              Show all days
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {filteredEvents.length === 0 ? (
+          <View style={[styles.emptyState, { backgroundColor: cardBg }]}>
+            {confirmedEvents.length === 0 ? (
+              <>
+                <Ionicons name="calendar-outline" size={48} color={colors.icon} />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>No events yet</Text>
+                <Text style={[styles.emptyHint, { color: colors.icon }]}>
+                  Tap "Going" on the Events tab to add events you're attending. They'll show up
+                  here.
+                </Text>
+              </>
+            ) : selectedDate ? (
+              <>
+                <Ionicons name="calendar-outline" size={40} color={colors.icon} />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>No events this day</Text>
+                <Text style={[styles.emptyHint, { color: colors.icon }]}>
+                  Tap another day or "Show all days" above.
+                </Text>
+              </>
+            ) : null}
+          </View>
+        ) : (
+          filteredEvents.map((ev) => (
+            <View key={ev.id} style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
+              <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
+                <Text style={styles.dateDay}>{ev.day}</Text>
+                <Text style={styles.dateMonth}>{ev.month}</Text>
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{ev.title}</Text>
+                <View style={styles.metaRow}>
+                  <Ionicons name="time-outline" size={14} color={colors.icon} />
+                  <Text style={[styles.cardMeta, { color: colors.icon }]}> {ev.time}</Text>
+                </View>
+                <View style={styles.metaRow}>
+                  <Ionicons name="location-outline" size={14} color={colors.icon} />
+                  <Text style={[styles.cardLocation, { color: colors.icon }]}> {ev.location}</Text>
+                </View>
+                <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
+                  <Text style={[styles.pillText, { color: colors.tint }]}>{ev.venueType}</Text>
+                </View>
+              </View>
+            </View>
+          ))
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -66,33 +264,36 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  calendarPlaceholder: {
-    flex: 1,
+  calendarCard: {
     borderRadius: 16,
-    overflow: 'hidden',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    marginBottom: -100,
   },
-  monthHeader: {
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
+  },
+  arrowBtn: {
+    padding: 4,
   },
   monthTitle: {
     fontSize: 18,
     fontWeight: '700',
-    textAlign: 'center',
   },
   weekdayRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     marginBottom: 8,
   },
   weekday: {
+    flex: 1,
     fontSize: 13,
     fontWeight: '600',
-    width: 32,
     textAlign: 'center',
   },
   grid: {
@@ -105,23 +306,117 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cellText: {
-    fontSize: 15,
-    fontWeight: '500',
+  cellDay: {
+    borderRadius: 10,
   },
-  legend: {
+  cellHasEvent: {},
+  cellSelected: {},
+  cellDayText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  dot: {
+    position: 'absolute',
+    bottom: 4,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(128,128,128,0.2)',
+    flexWrap: 'wrap',
+    marginTop: 4,
+    marginBottom: 8,
   },
-  placeholderText: {
-    fontSize: 13,
-    fontStyle: 'italic',
+  listSectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginRight: 12,
+  },
+  showAllDaysLink: {
+    marginLeft: 'auto',
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+  },
+  list: {
     flex: 1,
+  },
+  listContent: {
+    paddingBottom: 32,
+  },
+  emptyState: {
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 160,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 16,
+  },
+  emptyHint: {
+    fontSize: 15,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  card: {
+    flexDirection: 'row',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  dateBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  dateDay: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '800',
+    lineHeight: 22,
+  },
+  dateMonth: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  cardBody: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  cardMeta: {
+    fontSize: 14,
+  },
+  cardLocation: {
+    fontSize: 14,
+  },
+  pill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  pillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'capitalize',
   },
 });

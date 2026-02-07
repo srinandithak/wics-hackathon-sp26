@@ -2,6 +2,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { ConfirmedEventsProvider } from './contexts/ConfirmedEventsContext';
 import Profile from './screens/Profile';
 import Onboarding from './screens/Onboarding';
 import Login from './screens/Login';
@@ -28,11 +29,13 @@ const MainNavigator = () => {
 
 const AppNavigator = () => {
     return (
-        <Stack.Navigator>
-            <Stack.Screen name="Onboarding" component={Onboarding} options={{ headerShown: false }} />
-            <Stack.Screen name="Main" component={MainNavigator} options={{ headerShown: false }} />
-            <Stack.Screen name="Login" component={Login} />
-        </Stack.Navigator>
+        <ConfirmedEventsProvider>
+            <Stack.Navigator>
+                <Stack.Screen name="Onboarding" component={Onboarding} options={{ headerShown: false }} />
+                <Stack.Screen name="Main" component={MainNavigator} options={{ headerShown: false }} />
+                <Stack.Screen name="Login" component={Login} />
+            </Stack.Navigator>
+        </ConfirmedEventsProvider>
     );
 };
 
