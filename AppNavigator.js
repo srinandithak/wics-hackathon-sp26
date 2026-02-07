@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Profile from './screens/Profile';
 import OnBoarding from './screens/Onboarding';
-import Login from './screens/login';
+import Login from './screens/Login';
 import Artists from './screens/Artists';
 import Calendar from './screens/Calendar';
 import Events from './screens/Events';
