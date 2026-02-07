@@ -49,10 +49,12 @@ export default function OnboardingScreen({ navigation }) {
         }
     }, [step]);
 
+
     const vinylIcon = (
-        <View style={styles.vinylWrapper}>
-            <MaterialCommunityIcons name="record-vinyl" size={26} color="#2b1a0f" />
-        </View>
+        <Image
+            source={require('../assets/images/vinyl.png')}
+            style={{ width: 26, height: 26 }}
+        />
     );
 
     // Final loading screen
@@ -151,7 +153,7 @@ export default function OnboardingScreen({ navigation }) {
                                     <Picker.Item label="Drake" value="Drake" />
                                     <Picker.Item label="Frank Ocean" value="Frank Ocean" />
                                     <Picker.Item label="Bad Bunny" value="Bad Bunny" />
-                                    <Picker.Item label="Phoebe Bridgers" value="Phoebe Bridgers" />
+                                    <Picker.Item label="Sabrina Carpenter" value="Sabrina Carpenter" />
                                 </Picker>
                             </View>
                         </View>
