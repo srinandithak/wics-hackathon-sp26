@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+// import { styles } from '../styles/styles';
 
 const cardShadow = Platform.select({
   ios: {
@@ -80,6 +81,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 12,
+    backgroundColor: '#f7efdc',
   },
   title: {
     fontSize: 28,
