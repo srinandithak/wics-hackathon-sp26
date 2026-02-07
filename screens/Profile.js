@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import {
     Alert,
@@ -13,9 +14,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useApp } from '../contexts/AppContext';
 import { Colors } from '../constants/theme';
+import { useApp } from '../contexts/AppContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { supabase } from '../lib/supabase';
 
@@ -48,50 +48,57 @@ export default function Profile({ navigation }) {
     // --- Songs state ---
     const [songInput, setSongInput] = useState('');
     const [artistInput, setArtistInput] = useState('');
-    const [userPosts, setUserPosts] = useState([]);
+    const [userSongs, setUserSongs] = useState([]);
     const [loading, setLoading] = useState(false);
 
 
     // --- Fetch user's songs ---
-    const fetchPosts = async () => {
+    const fetchSongs = async () => {
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('posts')
+                .select('favorite_artists')
                 .eq('id', user.id)
                 .single();
 
             if (error) throw error;
 
-            // posts will be an array of objects: [{ song: 'Cruel Summer', artist: 'Taylor Swift' }]
-            setUserPosts(profile.posts || []);
+            setUserSongs(profile.favorite_artists || []);
         } catch (err) {
             console.error(err);
-            Alert.alert('Error fetching posts', err.message || 'Try again');
+            Alert.alert('Error fetching songs', err.message || 'Try again');
         }
     };
 
     useEffect(() => {
-        fetchPosts();
+        fetchSongs();
     }, []);
 
-    // --- Add a song ---
+    // Add a new song
     const handleAddSong = async () => {
-        if (!songInput.trim() || !artistInput.trim()) return;
+        if (!songInput.trim() || !artistInput.trim()) {
+            Alert.alert('Both fields are required');
+            return;
+        }
+
+        if (userSongs.length >= 5) {
+            Alert.alert('Max 5 songs allowed');
+            return;
+        }
 
         setLoading(true);
         try {
-            const newPost = { song: songInput.trim(), artist: artistInput.trim() };
-            const newPosts = [newPost, ...(userPosts || [])].slice(0, 5); // max 5
+            const newSong = { title: songInput.trim(), artist: artistInput.trim() };
+            const newSongs = [newSong, ...userSongs]; // add to top
 
             const { error } = await supabase
                 .from('profiles')
-                .update({ posts: newPosts })
+                .update({ favorite_artists: newSongs })
                 .eq('id', user.id);
 
             if (error) throw error;
 
-            setUserPosts(newPosts);
+            setUserSongs(newSongs); // update local state so it shows immediately
             setSongInput('');
             setArtistInput('');
         } catch (err) {
@@ -102,24 +109,26 @@ export default function Profile({ navigation }) {
         }
     };
 
-    // --- Remove a song ---
+    // Remove a song
     const handleRemoveSong = async (index) => {
-        const updatedPosts = [...userPosts];
-        updatedPosts.splice(index, 1);
+        const updatedSongs = [...userSongs];
+        updatedSongs.splice(index, 1);
 
         try {
             const { error } = await supabase
                 .from('profiles')
-                .update({ posts: updatedPosts })
+                .update({ favorite_artists: updatedSongs })
                 .eq('id', user.id);
 
             if (error) throw error;
-            setUserPosts(updatedPosts);
+
+            setUserSongs(updatedSongs);
         } catch (err) {
             console.error(err);
             Alert.alert('Error removing song', err.message || 'Try again');
         }
     };
+
 
     // --- Profile modals and sidebar ---
     const handleSave = () => {
@@ -223,39 +232,49 @@ export default function Profile({ navigation }) {
                     </View> */}
 
                     {/* --- My Songs Section --- */}
-                    <Text style={[styles.sectionTitle, { color: colors.text, fontSize: currentFontSizes.subtitle, marginTop: 24 }]}>
-                        My Songs
-                    </Text>
+                    <Text style={{ fontWeight: '700', fontSize: 18, marginBottom: 8 }}>My Songs</Text>
 
-                    <View style={{ flexDirection: 'row', marginBottom: 8, gap: 8 }}>
+                    {/* Inputs */}
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                         <TextInput
-                            style={[styles.input, { flex: 1, backgroundColor: cardBg, color: colors.text }]}
+                            style={{ flex: 1, borderWidth: 1, borderRadius: 12, padding: 10 }}
                             placeholder="Song Name"
-                            placeholderTextColor={colors.icon + '60'}
                             value={songInput}
                             onChangeText={setSongInput}
                         />
                         <TextInput
-                            style={[styles.input, { flex: 1, backgroundColor: cardBg, color: colors.text }]}
+                            style={{ flex: 1, borderWidth: 1, borderRadius: 12, padding: 10 }}
                             placeholder="Artist"
-                            placeholderTextColor={colors.icon + '60'}
                             value={artistInput}
                             onChangeText={setArtistInput}
                         />
                         <TouchableOpacity
-                            style={[styles.addButton, { backgroundColor: colors.tint }]}
+                            style={{ padding: 12, backgroundColor: '#007AFF', borderRadius: 12 }}
                             onPress={handleAddSong}
                             disabled={loading}
                         >
-                            <Text style={styles.addButtonText}>{loading ? '...' : 'Add'}</Text>
+                            <Text style={{ color: '#fff' }}>{loading ? '...' : 'Add'}</Text>
                         </TouchableOpacity>
                     </View>
 
-                    {userPosts.map((post, index) => (
-                        <View key={index} style={[styles.songItem, { backgroundColor: colors.background + '30' }]}>
-                            <Text style={{ color: colors.text, flex: 1 }}>{post.song} - {post.artist}</Text>
+                    {/* Song list */}
+                    {userSongs.map((song, index) => (
+                        <View
+                            key={index}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                padding: 12,
+                                borderRadius: 12,
+                                marginBottom: 8,
+                                backgroundColor: '#f0f0f0',
+                            }}
+                        >
+                            <Text style={{ flex: 1 }}>
+                                {song.title} - {song.artist}
+                            </Text>
                             <TouchableOpacity onPress={() => handleRemoveSong(index)}>
-                                <Ionicons name="trash-outline" size={20} color={colors.icon} />
+                                <Ionicons name="trash-outline" size={20} color="#888" />
                             </TouchableOpacity>
                         </View>
                     ))}
