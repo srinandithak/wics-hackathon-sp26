@@ -33,7 +33,7 @@ const AppNavigator = () => {
             <Stack.Navigator>
                 <Stack.Screen name="Onboarding" component={Onboarding} options={{ headerShown: false }} />
                 <Stack.Screen name="Main" component={MainNavigator} options={{ headerShown: false }} />
-                <Stack.Screen name="Login" component={Login} />
+                <Stack.Screen name="Login" component={Login} options={{ headerShown: false }}/>
             </Stack.Navigator>
         </ConfirmedEventsProvider>
     );
