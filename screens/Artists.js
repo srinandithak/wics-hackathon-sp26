@@ -1,147 +1,88 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Platform,
-  ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    FlatList,
+    TextInput
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from '../hooks/use-color-scheme';
-import { Colors } from '../constants/theme';
+import { supabase } from '../lib/supabase';
+import vinyl from '../assets/images/vinyl.png';
 // import { styles } from '../styles/styles';
 
-const cardShadow = Platform.select({
-  ios: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-  },
-  android: { elevation: 3 },
-  default: {},
-});
+const Colors = {
+    white: '#f7efdc',
+    orange: '#db775b',
+    black: '#000000'
+}
+
 
 export default function Artists({ navigation }) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const isDark = colorScheme === 'dark';
-  const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
-  const searchBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
+    const [artists, setArtists] = useState([]);
+    const [searchText, setSearchText] = useState('');
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[styles.title, { color: colors.text }]}>Discover Artists</Text>
-      <Text style={[styles.subtitle, { color: colors.icon }]}>
-        UT student artists matching your taste
-      </Text>
+    useEffect(() => {
+        const fetchArtists = async () => {
 
-      <View style={[styles.searchWrap, { backgroundColor: searchBg }]}>
-        <Ionicons name="search" size={20} color={colors.icon} style={styles.searchIcon} />
-        <TextInput
-          style={[styles.search, { color: colors.text }]}
-          placeholder="Search artists..."
-          placeholderTextColor={colors.icon}
-        />
-      </View>
+            const { data, error } = await supabase
+                .from('profiles')       // your table name
+                .select('*')            // get all columns
+                .eq('user_type', 'artist');  // only profiles where type = 'artist'
 
-      <ScrollView
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
-          <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
-          <View style={styles.cardBody}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Artist name</Text>
-            <Text style={[styles.cardMeta, { color: colors.icon }]}>Similar to: Artist A, Artist B</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+            if (error) {
+                console.log('Error fetching artists:', error);
+            } else {
+                setArtists(data || []); // store array in state
+            }
+
+        };
+
+        fetchArtists();
+    }, []);
+
+    // Render each artist
+    const renderArtist = ({ item }) => (
+        <View style={styles.card}>
+            <Image source={vinyl} style={styles.vinyl} />
+            <Text style={styles.artistName}>{item.name}</Text>
         </View>
-        <View style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
-          <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
-          <View style={styles.cardBody}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Another artist</Text>
-            <Text style={[styles.cardMeta, { color: colors.icon }]}>Similar to: Artist C</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+    );
+
+    const filteredArtists = artists.filter(artist => artist.name.toLowerCase().includes(searchText.toLowerCase()));
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.searchWrap}>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search artists..."
+                    value={searchText}
+                    onChangeText={setSearchText} // updates searchText as user types
+                />
+            </View>
+            <Text style = {styles.title}>Discover Artists</Text>
+            <View style={styles.artists}>
+                <FlatList
+                    data={filteredArtists}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderArtist}
+                    numColumns={2} // two cards per row
+                    columnWrapperStyle={styles.row}
+                    contentContainerStyle={{ paddingBottom: 32 }}
+                />
+            </View>
         </View>
-        <Text style={[styles.placeholder, { color: colors.icon }]}>
-          Artist list will load here
-        </Text>
-      </ScrollView>
-    </SafeAreaView>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    backgroundColor: '#f7efdc',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    marginBottom: 20,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  search: {
-    flex: 1,
-    paddingVertical: 14,
-    fontSize: 16,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 32,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginRight: 14,
-  },
-  cardBody: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  cardMeta: {
-    fontSize: 14,
-    marginTop: 2,
-    opacity: 0.85,
-  },
-  placeholder: {
-    fontSize: 14,
-    marginTop: 12,
-    fontStyle: 'italic',
-  },
+    container: { flex: 1, padding: 20, paddingTop: 70, backgroundColor: Colors.white },
+    row: { justifyContent: 'space-between', marginBottom: 16 },
+    card: { flex: 1, alignItems: 'center', marginHorizontal: 4 },
+    vinyl: { width: 200, height: 200},
+    searchWrap: {borderRadius: 75, width: 350, backgroundColor: Colors.orange},
+    searchInput: { padding: 15, color: Colors.black, fontsize: 16},
+    artistName: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
+    title: {fontSize: 50, paddingTop: 20, fontWeight: '600',}
 });
