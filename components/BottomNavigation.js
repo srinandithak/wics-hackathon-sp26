@@ -12,16 +12,16 @@ const BottomNavigation = ({ navigation }) => {
           <Ionicons name="musical-notes" size={28} color="black" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Main', { screen: 'Friends' })}
-          style={styles.tabButton}
-        >
-          <Ionicons name="people" size={28} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Events' })}
           style={styles.tabButton}
         >
           <Ionicons name="location" size={28} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Main', { screen: 'Friends' })}
+          style={styles.tabButton}
+        >
+          <Ionicons name="people" size={28} color="black" />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate('Main', { screen: 'Calendar' })}

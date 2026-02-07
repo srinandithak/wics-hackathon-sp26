@@ -17,6 +17,7 @@ export interface Profile {
   profile_image_url: string | null;
   similar_artists: string[] | null;
   genres: string[] | null;
+  posts?: string[] | null;  // optional: DB default is []
   created_at: string;
 }
 

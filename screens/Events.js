@@ -1,17 +1,19 @@
-import React, { useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useMemo, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
+import { useColorScheme } from '../hooks/use-color-scheme';
+import discoverStyles from '../styles/discoverStyles';
 
 const cardShadow = Platform.select({
   ios: {
@@ -46,21 +48,40 @@ export default function Events({ navigation }) {
   const isDark = colorScheme === 'dark';
   const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
   const { isConfirmed, toggleEvent } = useConfirmedEvents();
+  const [searchText, setSearchText] = useState('');
 
   const events = useMemo(() => {
-    return [...EVENTS_RAW].sort((a, b) => b.friendsGoing.length - a.friendsGoing.length);
-  }, []);
+    const sorted = [...EVENTS_RAW].sort((a, b) => b.friendsGoing.length - a.friendsGoing.length);
+    if (!searchText.trim()) return sorted;
+    const q = searchText.toLowerCase().trim();
+    return sorted.filter(
+      (ev) =>
+        ev.title.toLowerCase().includes(q) ||
+        ev.location.toLowerCase().includes(q) ||
+        ev.venueType.toLowerCase().includes(q)
+    );
+  }, [searchText]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[styles.title, { color: colors.text }]}>Upcoming Events</Text>
-      <Text style={[styles.subtitle, { color: colors.icon }]}>
+    <SafeAreaView style={discoverStyles.container} edges={['top']}>
+      <Text style={discoverStyles.title}>Discover Events</Text>
+      <Text style={[eventStyles.subtitle, { color: colors.icon }]}>
         Shows & pop-ups · More friends = higher in the list
       </Text>
 
+      <View style={discoverStyles.searchWrap}>
+        <TextInput
+          style={discoverStyles.searchInput}
+          placeholder="Search events..."
+          placeholderTextColor="#687076"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+      </View>
+
       <ScrollView
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
+        style={eventStyles.list}
+        contentContainerStyle={eventStyles.listContent}
         showsVerticalScrollIndicator={false}
       >
         {events.map((ev) => {
@@ -68,22 +89,22 @@ export default function Events({ navigation }) {
           const friendsLabel = getFriendsLabel(ev.friendsGoing);
           const imGoing = isConfirmed(ev.id);
           return (
-            <View key={ev.id} style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
-              <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
-                <Text style={styles.dateDay}>{ev.day}</Text>
-                <Text style={styles.dateMonth}>{ev.month}</Text>
+            <View key={ev.id} style={[eventStyles.card, { backgroundColor: cardBg }, cardShadow]}>
+              <View style={[eventStyles.dateBadge, { backgroundColor: colors.tint }]}>
+                <Text style={eventStyles.dateDay}>{ev.day}</Text>
+                <Text style={eventStyles.dateMonth}>{ev.month}</Text>
               </View>
-              <View style={styles.cardBody}>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>{ev.title}</Text>
-                <View style={styles.metaRow}>
+              <View style={eventStyles.cardBody}>
+                <Text style={[eventStyles.cardTitle, { color: colors.text }]}>{ev.title}</Text>
+                <View style={eventStyles.metaRow}>
                   <Ionicons name="time-outline" size={14} color={colors.icon} />
-                  <Text style={[styles.cardMeta, { color: colors.icon }]}> {ev.time}</Text>
+                  <Text style={[eventStyles.cardMeta, { color: colors.icon }]}> {ev.time}</Text>
                 </View>
-                <View style={styles.metaRow}>
+                <View style={eventStyles.metaRow}>
                   <Ionicons name="location-outline" size={14} color={colors.icon} />
-                  <Text style={[styles.cardLocation, { color: colors.icon }]}> {ev.location}</Text>
+                  <Text style={[eventStyles.cardLocation, { color: colors.icon }]}> {ev.location}</Text>
                 </View>
-                <View style={[styles.friendsRow, { backgroundColor: friendCount > 0 ? colors.tint + '18' : colors.icon + '18' }]}>
+                <View style={[eventStyles.friendsRow, { backgroundColor: friendCount > 0 ? colors.tint + '18' : colors.icon + '18' }]}>
                   <Ionicons
                     name="people-outline"
                     size={14}
@@ -91,21 +112,21 @@ export default function Events({ navigation }) {
                   />
                   <Text
                     style={[
-                      styles.friendsLabel,
+                      eventStyles.friendsLabel,
                       { color: friendCount > 0 ? colors.tint : colors.icon },
                     ]}
                   >
                     {friendsLabel}
                   </Text>
                   {friendCount > 0 && (
-                    <View style={[styles.friendCountBadge, { backgroundColor: colors.tint }]}>
-                      <Text style={styles.friendCountText}>{friendCount}</Text>
+                    <View style={[eventStyles.friendCountBadge, { backgroundColor: colors.tint }]}>
+                      <Text style={eventStyles.friendCountText}>{friendCount}</Text>
                     </View>
                   )}
                 </View>
                 <TouchableOpacity
                   style={[
-                    styles.goingButton,
+                    eventStyles.goingButton,
                     imGoing ? { backgroundColor: colors.tint } : { borderColor: colors.tint, borderWidth: 2 },
                   ]}
                   onPress={() => toggleEvent(ev)}
@@ -114,17 +135,17 @@ export default function Events({ navigation }) {
                   {imGoing ? (
                     <>
                       <Ionicons name="checkmark-circle" size={18} color="#fff" />
-                      <Text style={styles.goingButtonTextActive}>You're going</Text>
+                      <Text style={eventStyles.goingButtonTextActive}>You're going</Text>
                     </>
                   ) : (
                     <>
                       <Ionicons name="add-circle-outline" size={18} color={colors.tint} />
-                      <Text style={[styles.goingButtonText, { color: colors.tint }]}>Going</Text>
+                      <Text style={[eventStyles.goingButtonText, { color: colors.tint }]}>Going</Text>
                     </>
                   )}
                 </TouchableOpacity>
-                <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
-                  <Text style={[styles.pillText, { color: colors.tint }]}>{ev.venueType}</Text>
+                <View style={[eventStyles.pill, { backgroundColor: colors.tint + '22' }]}>
+                  <Text style={[eventStyles.pillText, { color: colors.tint }]}>{ev.venueType}</Text>
                 </View>
               </View>
             </View>
@@ -135,21 +156,11 @@ export default function Events({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
+const eventStyles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   list: {
     flex: 1,

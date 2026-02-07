@@ -21,9 +21,9 @@ const MainNavigator = () => {
         <Tab.Navigator tabBar={(props) => <BottomNavigation {...props} />}>
             <Tab.Screen name="Artists" component={Artists} options={{ headerShown: false }}/>
             <Tab.Screen name="Events" component={Events} options={{ headerShown: false }}/>
+            <Tab.Screen name="Friends" component={Friends} options={{ headerShown: false }}/>
             <Tab.Screen name="Calendar" component={Calendar} options={{ headerShown: false }}/>
             <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }}/>
-            <Tab.Screen name="Friends" component={Friends} options={{ headerShown: false }}/>
         </Tab.Navigator>
     );
 };
