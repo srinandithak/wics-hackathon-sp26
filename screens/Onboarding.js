@@ -1,6 +1,34 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+const AnimatedVinyl = () => {
+    const rotateAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(rotateAnim, {
+                toValue: 1,
+                duration: 1500,
+                easing: Easing.linear,
+                useNativeDriver: true,
+            })
+        ).start();
+    }, []);
+
+    const spin = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
+
+    return (
+        <Animated.Image
+            source={require('../assets/vinyl.png')}
+            style={{ width: 60, height: 60, transform: [{ rotate: spin }], marginBottom: 20 }}
+        />
+    );
+};
 
 export default function OnboardingScreen({ navigation }) {
     const [step, setStep] = useState(0);
@@ -13,9 +41,7 @@ export default function OnboardingScreen({ navigation }) {
     // Handle final loading + navigation
     useEffect(() => {
         if (step === 4) {
-            setLoading(true);
             const timer = setTimeout(() => {
-                setLoading(false);
                 navigation.replace('Main');
             }, 5000);
 
@@ -24,10 +50,9 @@ export default function OnboardingScreen({ navigation }) {
     }, [step]);
 
     const vinylIcon = (
-        <Image
-            source={require('../assets/images/vinyl.png')} 
-            style={{ width: 26, height: 26 }}
-        />
+        <View style={styles.vinylWrapper}>
+            <MaterialCommunityIcons name="record-vinyl" size={26} color="#2b1a0f" />
+        </View>
     );
 
     // Final loading screen
@@ -147,8 +172,8 @@ export default function OnboardingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    body: {
-        backgroundColor: '#f6ecd9',
+    vinylWrapper: {
+        marginTop: 2,
     },
     container: {
         flex: 1,
@@ -177,23 +202,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'flex-start',
         marginBottom: 20,
+        paddingHorizontal: 4,
     },
     block: {
         flex: 1,
-        marginLeft: 12,
+        marginLeft: 10,
+        marginRight: 6,
     },
     label: {
         fontSize: 14,
         marginBottom: 6,
     },
     input: {
-        backgroundColor: '#db775b',
+        backgroundColor: '#d97a5f',
         color: 'white',
-        padding: 10,
-        borderRadius: 6,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderRadius: 10,
     },
     dropdown: {
-        backgroundColor: '#db775b',
+        backgroundColor: '#8b4513',
         borderRadius: 6,
     },
     loginLink: {
