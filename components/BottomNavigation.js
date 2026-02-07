@@ -28,7 +28,7 @@ const BottomNavigation = ({ navigation }) => {
         <Icon.Button
           color="black"
           backgroundColor="67DE8F"
-          name="microphone" 
+          name="map-marker" 
           size={40}
           onPress={() => navigation.navigate('Main', { screen: 'Events' })}
         />
