@@ -1,19 +1,20 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  Animated,
-  Modal,
+    Animated,
+    FlatList,
+    Image,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../lib/supabase';
 import vinyl from '../assets/images/vinyl.png';
-import { discoverStyles, DiscoverColors } from '../styles/styles';
+import { supabase } from '../lib/supabase';
+import { DiscoverColors, discoverStyles } from '../styles/styles';
 
 export default function Artists({ navigation }) {
   const [artists, setArtists] = useState([]);
@@ -95,10 +96,11 @@ export default function Artists({ navigation }) {
         <TextInput
           style={discoverStyles.searchInput}
           placeholder="Search artists..."
-          placeholderTextColor={DiscoverColors.placeholder}
+          placeholderTextColor={DiscoverColors.white}
           value={searchText}
           onChangeText={setSearchText}
         />
+        <Ionicons name="search" size={22} color={DiscoverColors.white} style={discoverStyles.searchIcon} />
       </View>
       <View style={discoverStyles.list}>
         <FlatList

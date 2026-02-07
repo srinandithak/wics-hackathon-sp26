@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
+import { discoverStyles } from '../styles/styles';
 
 const cardShadow = Platform.select({
   ios: {
@@ -100,10 +101,7 @@ export default function Calendar({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[styles.title, { color: colors.text }]}>My Calendar</Text>
-      <Text style={[styles.subtitle, { color: colors.icon }]}>
-        Events you're confirmed for
-      </Text>
+      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16 }]}>Calendar</Text>
 
       <View style={[styles.calendarCard, { backgroundColor: colors.background }]}>
         <View style={styles.calendarHeader}>
@@ -256,20 +254,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    marginTop: 4,
-    marginBottom: 16,
-  },
   calendarCard: {
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 40,
     paddingBottom: 8,
     marginBottom: -100,
   },
