@@ -29,8 +29,6 @@ const MainNavigator = () => {
 
 const AppNavigator = () => {
     return (
-        <UserProvider>
-            <PostsProvider>
                 <NavigationContainer>
                     <Stack.Navigator>
                         <Stack.Screen name="Onboarding" component={Onboarding} options={{ headerShown: false }} />
@@ -38,8 +36,6 @@ const AppNavigator = () => {
                         <Stack.Screen name="Login" component={Login} />
                     </Stack.Navigator>
                 </NavigationContainer>
-            </PostsProvider>
-        </UserProvider>
     );
 };
 
