@@ -7,6 +7,7 @@ import {
   FlatList,
   TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
 import vinyl from '../assets/images/vinyl.png';
@@ -46,10 +47,11 @@ export default function Artists({ navigation }) {
         <TextInput
           style={discoverStyles.searchInput}
           placeholder="Search artists..."
-          placeholderTextColor={DiscoverColors.placeholder}
+          placeholderTextColor={DiscoverColors.white}
           value={searchText}
           onChangeText={setSearchText}
         />
+        <Ionicons name="search" size={22} color={DiscoverColors.white} style={discoverStyles.searchIcon} />
       </View>
       <View style={discoverStyles.list}>
         <FlatList

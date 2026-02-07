@@ -10,7 +10,6 @@ export const DiscoverColors = {
 
 const padding = 20;
 const paddingTop = 16;
-const searchWidth = 350;
 const searchRadius = 75;
 const listPaddingBottom = 32;
 
@@ -34,16 +33,21 @@ export const discoverStyles = StyleSheet.create({
   },
   searchWrap: {
     borderRadius: searchRadius,
-    width: searchWidth,
-    alignSelf: 'center',
+    alignSelf: 'stretch',
     backgroundColor: DiscoverColors.orange,
     marginTop: 16,
     marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   searchInput: {
+    flex: 1,
     padding: 15,
     fontSize: 16,
     color: DiscoverColors.black,
+  },
+  searchIcon: {
+    paddingRight: 16,
   },
   list: {
     flex: 1,

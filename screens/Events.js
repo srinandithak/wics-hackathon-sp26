@@ -69,10 +69,11 @@ export default function Events({ navigation }) {
         <TextInput
           style={discoverStyles.searchInput}
           placeholder="Search events..."
-          placeholderTextColor={DiscoverColors.placeholder}
+          placeholderTextColor={DiscoverColors.white}
           value={searchText}
           onChangeText={setSearchText}
         />
+        <Ionicons name="search" size={22} color={DiscoverColors.white} style={discoverStyles.searchIcon} />
       </View>
       <ScrollView
         style={discoverStyles.list}

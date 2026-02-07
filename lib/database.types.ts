@@ -7,11 +7,16 @@ export type Json = string | number | boolean | null | Json[] | { [key: string]: 
 export type UserType = 'listener' | 'artist';
 export type AttendanceStatus = 'going' | 'interested';
 
+export interface FavoriteSong {
+  title: string;
+  artist: string;
+}
+
 export interface Profile {
   id: string;
   name: string;
   user_type: UserType;
-  favorite_artists: string[] | null;
+  favorite_artists: FavoriteSong[] | null;
   instagram_handle: string | null;
   bio: string | null;
   profile_image_url: string | null;
