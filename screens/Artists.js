@@ -20,6 +20,7 @@ export default function Artists({ navigation }) {
   const [artists, setArtists] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [flipComplete, setFlipComplete] = useState(false);
   const [flipAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -36,14 +37,16 @@ export default function Artists({ navigation }) {
 
   useEffect(() => {
     if (selectedArtist) {
+      setFlipComplete(false);
       Animated.spring(flipAnim, {
         toValue: 1,
-        useNativeDriver: false, // Changed to false for better text rendering
+        useNativeDriver: false,
         tension: 40,
         friction: 7,
-      }).start();
+      }).start(() => setFlipComplete(true));
     } else {
       flipAnim.setValue(0);
+      setFlipComplete(false);
     }
   }, [selectedArtist]);
 
@@ -56,10 +59,11 @@ export default function Artists({ navigation }) {
   };
 
   const handleClose = () => {
+    setFlipComplete(false);
     Animated.timing(flipAnim, {
       toValue: 0,
       duration: 300,
-      useNativeDriver: false, // Changed to false for better text rendering
+      useNativeDriver: false,
     }).start(() => setSelectedArtist(null));
   };
 
@@ -142,36 +146,35 @@ export default function Artists({ navigation }) {
                 <Image source={vinyl} style={artistStyles.vinylLarge} />
               </Animated.View>
 
-              {/* Back of vinyl */}
+              {/* Back of vinyl - solid only; text is in overlay below for crisp rendering */}
               <Animated.View
                 style={[
                   artistStyles.flipCard,
                   artistStyles.flipCardBack,
                   { transform: [{ rotateY: backInterpolate }] },
                 ]}
-              >
-                <View style={artistStyles.vinylBack}>
-                  <Text 
-                    style={artistStyles.vinylBackTitle}
-                    allowFontScaling={false}
-                  >
-                    {selectedArtist?.name}
-                  </Text>
-                  <Text 
-                    style={artistStyles.vinylBackText}
-                    allowFontScaling={false}
-                  >
-                    Bio: {selectedArtist?.bio || 'No bio available'}
-                  </Text>
-                  <Text 
-                    style={artistStyles.vinylBackText}
-                    allowFontScaling={false}
-                  >
-                    Genre: {selectedArtist?.genre || 'Unknown'}
-                  </Text>
-                </View>
-              </Animated.View>
+              />
             </Animated.View>
+            {/* Crisp text overlay - not transformed, so no blur */}
+            <View
+              style={[
+                artistStyles.flipCardBackOverlay,
+                { opacity: flipComplete ? 1 : 0 },
+              ]}
+              pointerEvents={flipComplete ? 'box-none' : 'none'}
+            >
+              <View style={artistStyles.vinylBack}>
+                <Text style={artistStyles.vinylBackTitle} allowFontScaling={false}>
+                  {selectedArtist?.name}
+                </Text>
+                <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
+                  Bio: {selectedArtist?.bio || 'No bio available'}
+                </Text>
+                <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
+                  Genre: {selectedArtist?.genre || 'Unknown'}
+                </Text>
+              </View>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -212,8 +215,18 @@ const artistStyles = StyleSheet.create({
   },
   flipCardBack: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 120, // Adjusted to match new size (half of 240)
+    borderRadius: 120,
     padding: 20,
+  },
+  flipCardBackOverlay: {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   vinylLarge: {
     width: 240, // Reduced from 300
@@ -225,18 +238,18 @@ const artistStyles = StyleSheet.create({
     width: '100%',
   },
   vinylBackTitle: {
-    fontSize: 22, // Slightly smaller
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 12,
     textAlign: 'center',
-    includeFontPadding: false, // Helps with text rendering on Android
+    includeFontPadding: false,
   },
   vinylBackText: {
-    fontSize: 13, // Slightly smaller
+    fontSize: 17,
     color: '#ccc',
-    marginBottom: 6,
+    marginBottom: 8,
     textAlign: 'center',
-    includeFontPadding: false, // Helps with text rendering on Android
+    includeFontPadding: false,
   },
 });
