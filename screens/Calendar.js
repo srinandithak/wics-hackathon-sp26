@@ -105,7 +105,7 @@ export default function Calendar({ navigation }) {
         Events you're confirmed for
       </Text>
 
-      <View style={[styles.calendarCard, { backgroundColor: cardBg }]}>
+      <View style={[styles.calendarCard, { backgroundColor: colors.background }]}>
         <View style={styles.calendarHeader}>
           <TouchableOpacity
             onPress={() => {
