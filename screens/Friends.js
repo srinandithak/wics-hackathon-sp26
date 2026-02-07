@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+import { discoverStyles } from '../styles/styles';
 
 const cardShadow = Platform.select({
   ios: {
@@ -55,10 +56,7 @@ export default function Friends({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[styles.title, { color: colors.text }]}>Friends</Text>
-      <Text style={[styles.subtitle, { color: colors.icon }]}>
-        Your friends · Suggested profiles with similar tastes
-      </Text>
+      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16 }]}>Friends</Text>
 
       <View style={[styles.tabRow, { borderBottomColor: colors.icon + '33' }]}>
         <TouchableOpacity
@@ -180,16 +178,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    marginTop: 4,
-    marginBottom: 16,
   },
   tabRow: {
     flexDirection: 'row',

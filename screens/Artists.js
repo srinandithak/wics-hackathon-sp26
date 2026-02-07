@@ -1,25 +1,26 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  Animated,
-  Modal,
+    Animated,
+    FlatList,
+    Image,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../lib/supabase';
 import vinyl from '../assets/images/vinyl.png';
-import { discoverStyles, DiscoverColors } from '../styles/styles';
+import { supabase } from '../lib/supabase';
+import { DiscoverColors, discoverStyles } from '../styles/styles';
 
 export default function Artists({ navigation }) {
   const [artists, setArtists] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [flipComplete, setFlipComplete] = useState(false);
   const [flipAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -36,14 +37,16 @@ export default function Artists({ navigation }) {
 
   useEffect(() => {
     if (selectedArtist) {
+      setFlipComplete(false);
       Animated.spring(flipAnim, {
         toValue: 1,
-        useNativeDriver: true,
+        useNativeDriver: false,
         tension: 40,
         friction: 7,
-      }).start();
+      }).start(() => setFlipComplete(true));
     } else {
       flipAnim.setValue(0);
+      setFlipComplete(false);
     }
   }, [selectedArtist]);
 
@@ -56,10 +59,11 @@ export default function Artists({ navigation }) {
   };
 
   const handleClose = () => {
+    setFlipComplete(false);
     Animated.timing(flipAnim, {
       toValue: 0,
       duration: 300,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => setSelectedArtist(null));
   };
 
@@ -75,7 +79,7 @@ export default function Artists({ navigation }) {
 
   const scaleInterpolate = flipAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.5],
+    outputRange: [1, 1.2], // Reduced from 1.5 to 1.2
   });
 
   const renderArtist = ({ item }) => (
@@ -142,27 +146,35 @@ export default function Artists({ navigation }) {
                 <Image source={vinyl} style={artistStyles.vinylLarge} />
               </Animated.View>
 
-              {/* Back of vinyl */}
+              {/* Back of vinyl - solid only; text is in overlay below for crisp rendering */}
               <Animated.View
                 style={[
                   artistStyles.flipCard,
                   artistStyles.flipCardBack,
                   { transform: [{ rotateY: backInterpolate }] },
                 ]}
-              >
-                <View style={artistStyles.vinylBack}>
-                  <Text style={artistStyles.vinylBackTitle}>
-                    {selectedArtist?.name}
-                  </Text>
-                  <Text style={artistStyles.vinylBackText}>
-                    Bio: {selectedArtist?.bio || 'No bio available'}
-                  </Text>
-                  <Text style={artistStyles.vinylBackText}>
-                    Genre: {selectedArtist?.genre || 'Unknown'}
-                  </Text>
-                </View>
-              </Animated.View>
+              />
             </Animated.View>
+            {/* Crisp text overlay - not transformed, so no blur */}
+            <View
+              style={[
+                artistStyles.flipCardBackOverlay,
+                { opacity: flipComplete ? 1 : 0 },
+              ]}
+              pointerEvents={flipComplete ? 'box-none' : 'none'}
+            >
+              <View style={artistStyles.vinylBack}>
+                <Text style={artistStyles.vinylBackTitle} allowFontScaling={false}>
+                  {selectedArtist?.name}
+                </Text>
+                <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
+                  Bio: {selectedArtist?.bio || 'No bio available'}
+                </Text>
+                <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
+                  Genre: {selectedArtist?.genre || 'Unknown'}
+                </Text>
+              </View>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -187,8 +199,8 @@ const artistStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   flipContainer: {
-    width: 300,
-    height: 300,
+    width: 240, // Reduced from 300
+    height: 240, // Reduced from 300
   },
   flipCard: {
     width: '100%',
@@ -203,12 +215,22 @@ const artistStyles = StyleSheet.create({
   },
   flipCardBack: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 150,
+    borderRadius: 120,
     padding: 20,
   },
+  flipCardBackOverlay: {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   vinylLarge: {
-    width: 300,
-    height: 300,
+    width: 240, // Reduced from 300
+    height: 240, // Reduced from 300
   },
   vinylBack: {
     alignItems: 'center',
@@ -216,16 +238,18 @@ const artistStyles = StyleSheet.create({
     width: '100%',
   },
   vinylBackTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 16,
+    marginBottom: 12,
     textAlign: 'center',
+    includeFontPadding: false,
   },
   vinylBackText: {
-    fontSize: 14,
+    fontSize: 17,
     color: '#ccc',
     marginBottom: 8,
     textAlign: 'center',
+    includeFontPadding: false,
   },
 });
