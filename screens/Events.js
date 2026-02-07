@@ -28,5 +28,5 @@ const Events = ({ navigation }) => {
     );
 };
 
-export default HomeScreen;
+export default Events;
 

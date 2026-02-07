@@ -28,5 +28,5 @@ const Profile = ({ navigation }) => {
     );
 };
 
-export default HomeScreen;
+export default Profile;
 

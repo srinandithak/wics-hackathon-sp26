@@ -28,5 +28,5 @@ const Calendar = ({ navigation }) => {
     );
 };
 
-export default HomeScreen;
+export default Calendar;
 

@@ -28,5 +28,5 @@ const Friends = ({ navigation }) => {
     );
 };
 
-export default HomeScreen;
+export default Friends;
 
