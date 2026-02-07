@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -38,6 +39,8 @@ export default function Profile({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempUsername, setTempUsername] = useState(username);
   const [tempInstagramId, setTempInstagramId] = useState(instagramId);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [sidebarAnim] = useState(new Animated.Value(-300));
 
   const handleSave = () => {
     setUsername(tempUsername);
@@ -51,9 +54,49 @@ export default function Profile({ navigation }) {
     setModalVisible(false);
   };
 
+  const openSidebar = () => {
+    setSidebarVisible(true);
+    Animated.spring(sidebarAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 10,
+    }).start();
+  };
+
+  const closeSidebar = () => {
+    Animated.timing(sidebarAnim, {
+      toValue: -300,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => setSidebarVisible(false));
+  };
+
+  const handleLogout = () => {
+    // Add your logout logic here
+    console.log('Logging out...');
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[styles.title, { color: colors.text }]}>My Profile</Text>
+      {/* Header with gear and logout */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.iconButton} 
+          onPress={openSidebar}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="settings-outline" size={26} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>My Profile</Text>
+        <TouchableOpacity 
+          style={styles.iconButton} 
+          onPress={handleLogout}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="log-out-outline" size={26} color={colors.text} />
+        </TouchableOpacity>
+      </View>
 
       <View style={[styles.profileCard, { backgroundColor: cardBg }, cardShadow]}>
         <View style={[styles.avatarWrap, { backgroundColor: colors.tint + '25' }]}>
@@ -88,6 +131,7 @@ export default function Profile({ navigation }) {
         </View>
       </ScrollView>
 
+      {/* Edit Profile Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -155,6 +199,74 @@ export default function Profile({ navigation }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Sidebar Modal */}
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={sidebarVisible}
+        onRequestClose={closeSidebar}
+      >
+        <View style={styles.sidebarOverlay}>
+          <TouchableOpacity 
+            style={styles.sidebarBackdrop} 
+            activeOpacity={1} 
+            onPress={closeSidebar}
+          />
+          <Animated.View 
+            style={[
+              styles.sidebar, 
+              { 
+                backgroundColor: colors.background,
+                transform: [{ translateX: sidebarAnim }]
+              },
+              cardShadow
+            ]}
+          >
+            <View style={styles.sidebarHeader}>
+              <Text style={[styles.sidebarTitle, { color: colors.text }]}>Settings</Text>
+              <TouchableOpacity onPress={closeSidebar}>
+                <Ionicons name="close" size={28} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.sidebarContent}>
+              <TouchableOpacity 
+                style={[styles.settingsItem, { borderBottomColor: colors.icon + '20' }]}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="notifications-outline" size={24} color={colors.text} />
+                <Text style={[styles.settingsItemText, { color: colors.text }]}>
+                  Notifications
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.settingsItem, { borderBottomColor: colors.icon + '20' }]}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="lock-closed-outline" size={24} color={colors.text} />
+                <Text style={[styles.settingsItemText, { color: colors.text }]}>
+                  Privacy
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.settingsItem, { borderBottomWidth: 0 }]}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="text-outline" size={24} color={colors.text} />
+                <Text style={[styles.settingsItemText, { color: colors.text }]}>
+                  Font Size
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -165,11 +277,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: 16,
   },
   profileCard: {
     borderRadius: 20,
@@ -312,5 +435,47 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  sidebarOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  sidebarBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sidebar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 280,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+  },
+  sidebarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  sidebarTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+  },
+  sidebarContent: {
+    flex: 1,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    gap: 16,
+  },
+  settingsItemText: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '600',
   },
 });
