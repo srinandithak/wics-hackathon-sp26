@@ -1,7 +1,6 @@
-import React, { useEffect, useContext } from 'react';
-import { View, Text, Button, TextInput } from 'react-native';
+import React from 'react';
+import { Text, TextInput, View } from 'react-native';
 // import { styles } from '../styles/styles';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Profile = ({ navigation }) => {
 
