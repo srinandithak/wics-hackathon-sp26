@@ -5,11 +5,13 @@ import {
   View,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 
 const cardShadow = Platform.select({
   ios: {
@@ -43,6 +45,7 @@ export default function Events({ navigation }) {
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
+  const { isConfirmed, toggleEvent } = useConfirmedEvents();
 
   const events = useMemo(() => {
     return [...EVENTS_RAW].sort((a, b) => b.friendsGoing.length - a.friendsGoing.length);
@@ -63,6 +66,7 @@ export default function Events({ navigation }) {
         {events.map((ev) => {
           const friendCount = ev.friendsGoing.length;
           const friendsLabel = getFriendsLabel(ev.friendsGoing);
+          const imGoing = isConfirmed(ev.id);
           return (
             <View key={ev.id} style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
               <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
@@ -99,6 +103,26 @@ export default function Events({ navigation }) {
                     </View>
                   )}
                 </View>
+                <TouchableOpacity
+                  style={[
+                    styles.goingButton,
+                    imGoing ? { backgroundColor: colors.tint } : { borderColor: colors.tint, borderWidth: 2 },
+                  ]}
+                  onPress={() => toggleEvent(ev)}
+                  activeOpacity={0.85}
+                >
+                  {imGoing ? (
+                    <>
+                      <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                      <Text style={styles.goingButtonTextActive}>You're going</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons name="add-circle-outline" size={18} color={colors.tint} />
+                      <Text style={[styles.goingButtonText, { color: colors.tint }]}>Going</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
                 <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
                   <Text style={[styles.pillText, { color: colors.tint }]}>{ev.venueType}</Text>
                 </View>
@@ -204,6 +228,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '800',
+  },
+  goingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  goingButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  goingButtonTextActive: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
   },
   pill: {
     alignSelf: 'flex-start',
