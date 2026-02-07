@@ -56,7 +56,7 @@ export default function OnboardingScreen({ navigation }) {
             style={{ width: 26, height: 26 }}
         />
     );
-    
+
     if (step === 4) {
         return (
             <View style={styles.containerCenter}>
@@ -194,6 +194,7 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: '600',
         marginBottom: 24,
+        marginTop: 100,
     },
     subtitle: {
         fontSize: 16,
