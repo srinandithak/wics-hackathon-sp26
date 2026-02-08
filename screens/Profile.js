@@ -14,11 +14,13 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from '../components/ThemedText';
 import { Colors } from '../constants/theme';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from '../app/contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { supabase } from '../lib/supabase';
+import { Switch } from 'react-native';
 
 const cardShadow = Platform.select({
     ios: {
@@ -38,9 +40,20 @@ export default function Profile({ navigation }) {
     const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
     const sectionBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
 
-    const { user, updateUser, logout, currentFontSizes } = useApp();
+const { user, updateUser, logout, currentFontSizes, isDyslexicMode, toggleDyslexicMode } = useApp();
+
+// Add this right after to see the values
+useEffect(() => {
+  console.log('isDyslexicMode:', isDyslexicMode);
+  console.log('toggleDyslexicMode:', toggleDyslexicMode);
+}, [isDyslexicMode]);
+
     const { profile, refreshProfile } = useAuth();
     const isArtist = profile?.user_type === 'artist';
+
+    const getFontFamily = () => {
+        return isDyslexicMode ? 'OpenDyslexic' : 'System';
+    };
 
     const [modalVisible, setModalVisible] = useState(false);
     const [tempUsername, setTempUsername] = useState(user.username);
@@ -220,9 +233,9 @@ export default function Profile({ navigation }) {
                         <TouchableOpacity style={styles.iconButton} onPress={openSidebar} activeOpacity={0.7}>
                             <Ionicons name="settings-outline" size={26} color={colors.text} />
                         </TouchableOpacity>
-                        <Text style={[styles.title, { color: colors.text, fontSize: currentFontSizes.title }]}>
+                        <ThemedText>
                             Profile
-                        </Text>
+                        </ThemedText>
                         <TouchableOpacity style={styles.iconButton} onPress={handleLogout} activeOpacity={0.7}>
                             <Ionicons name="log-out-outline" size={26} color={colors.text} />
                         </TouchableOpacity>
@@ -238,26 +251,26 @@ export default function Profile({ navigation }) {
                                 <Ionicons name="camera" size={16} color="#fff" />
                             </TouchableOpacity>
                         </View>
-                        <Text style={[styles.name, { color: colors.text, fontSize: currentFontSizes.large }]}>{user.username}</Text>
-                        <Text style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>@{user.instagramId}</Text>
+                        <ThemedText>{user.username}</ThemedText>
+                        <ThemedText style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>@{user.instagramId}</ThemedText>
                         {isArtist && (profile?.bio || profile?.genres?.length > 0 || profile?.similar_artists?.length > 0) && (
                             <View style={[styles.artistPreview, { backgroundColor: sectionBg }]}>
                                 {profile?.bio ? (
                                     <View style={styles.artistPreviewField}>
-                                        <Text style={[styles.artistPreviewLabel, { color: colors.icon }]}>Bio</Text>
-                                        <Text style={[styles.artistBioText, { color: colors.text }]} numberOfLines={4}>{profile.bio}</Text>
+                                        <ThemedText style={[styles.artistPreviewLabel, { color: colors.icon }]}>Bio</ThemedText>
+                                        <ThemedText style={[styles.artistBioText, { color: colors.text }]} numberOfLines={4}>{profile.bio}</ThemedText>
                                     </View>
                                 ) : null}
                                 {profile?.genres?.length > 0 ? (
                                     <View style={styles.artistPreviewField}>
-                                        <Text style={[styles.artistPreviewLabel, { color: colors.icon }]}>Genre</Text>
-                                        <Text style={[styles.artistGenreText, { color: colors.tint }]}>{profile.genres.join(', ')}</Text>
+                                        <ThemedText style={[styles.artistPreviewLabel, { color: colors.icon }]}>Genre</ThemedText>
+                                        <ThemedText style={[styles.artistGenreText, { color: colors.tint }]}>{profile.genres.join(', ')}</ThemedText>
                                     </View>
                                 ) : null}
                                 {profile?.similar_artists?.length > 0 ? (
                                     <View style={styles.artistPreviewField}>
-                                        <Text style={[styles.artistPreviewLabel, { color: colors.icon }]}>Similar artists</Text>
-                                        <Text style={[styles.artistSimilarText, { color: colors.text }]}>{profile.similar_artists.join(', ')}</Text>
+                                        <ThemedText style={[styles.artistPreviewLabel, { color: colors.icon }]}>Similar artists</ThemedText>
+                                        <ThemedText style={[styles.artistSimilarText, { color: colors.text }]}>{profile.similar_artists.join(', ')}</ThemedText>
                                     </View>
                                 ) : null}
                             </View>
@@ -275,7 +288,7 @@ export default function Profile({ navigation }) {
                             activeOpacity={0.8}
                         >
                             <Ionicons name="pencil" size={18} color={colors.tint} />
-                            <Text style={[styles.editButtonText, { color: colors.tint, fontSize: currentFontSizes.button }]}>Edit profile</Text>
+                            <ThemedText>Edit profile</ThemedText>
                         </TouchableOpacity>
                     </View>
 
@@ -294,11 +307,11 @@ export default function Profile({ navigation }) {
                             <View style={[styles.mySongsIconWrap, { backgroundColor: colors.tint + '20' }]}>
                                 <Ionicons name="musical-notes" size={22} color={colors.tint} />
                             </View>
-                            <Text style={[styles.mySongsTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>My Songs</Text>
+                            <ThemedText>My Songs</ThemedText>
                         </View>
-                        <Text style={[styles.mySongsSubtitle, { color: colors.icon, fontSize: currentFontSizes.small }]}>
+                        <ThemedText>
                             Add your favorite songs for other people to see when they click your profile!
-                        </Text>
+                        </ThemedText>
 
                         {/* Add form */}
                         <View style={[styles.songFormRow, { gap: 8 }]}>
@@ -322,7 +335,7 @@ export default function Profile({ navigation }) {
                                 disabled={loading}
                                 activeOpacity={0.8}
                             >
-                                <Text style={[styles.songAddBtnText, { fontSize: currentFontSizes.button }]}>{loading ? '...' : 'Add'}</Text>
+                                <ThemedText>{loading ? '...' : 'Add'}</ThemedText>
                             </TouchableOpacity>
                         </View>
 
@@ -331,7 +344,7 @@ export default function Profile({ navigation }) {
                             {userSongs.length === 0 ? (
                                 <View style={[styles.songListEmpty, { backgroundColor: sectionBg }]}>
                                     <Ionicons name="musical-notes-outline" size={28} color={colors.icon + '80'} />
-                                    <Text style={[styles.songListEmptyText, { color: colors.icon, fontSize: currentFontSizes.base }]}>No songs yet ...</Text>
+                                    <ThemedText>No songs yet ...</ThemedText>
                                 </View>
                             ) : (
                                 userSongs.map((song, index) => (
@@ -340,8 +353,8 @@ export default function Profile({ navigation }) {
                                         style={[styles.songItemCard, { backgroundColor: sectionBg, borderLeftColor: colors.tint }]}
                                     >
                                         <View style={styles.songItemContent}>
-                                            <Text style={[styles.songItemTitle, { color: colors.text, fontSize: currentFontSizes.base }]} numberOfLines={1}>{song.title}</Text>
-                                            <Text style={[styles.songItemArtist, { color: colors.icon, fontSize: currentFontSizes.small }]} numberOfLines={1}>{song.artist}</Text>
+                                            <ThemedText style={[styles.songItemTitle, { color: colors.text, fontSize: currentFontSizes.base }]} numberOfLines={1}>{song.title}</ThemedText>
+                                            <ThemedText style={[styles.songItemArtist, { color: colors.icon, fontSize: currentFontSizes.small }]} numberOfLines={1}>{song.artist}</ThemedText>
                                         </View>
                                         <TouchableOpacity onPress={() => handleRemoveSong(index)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                                             <Ionicons name="trash-outline" size={20} color={colors.icon} />
@@ -361,14 +374,14 @@ export default function Profile({ navigation }) {
                     <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={handleCancel} />
                     <View style={[styles.modalContent, { backgroundColor: cardBg }, cardShadow]}>
                         <View style={styles.modalHeader}>
-                            <Text style={[styles.modalTitle, { color: colors.text, fontSize: currentFontSizes.title }]}>Edit Profile</Text>
+                            <ThemedText>Edit Profile</ThemedText>
                             <TouchableOpacity onPress={handleCancel}>
                                 <Ionicons name="close" size={28} color={colors.icon} />
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: colors.text, fontSize: currentFontSizes.base }]}>Username</Text>
+                            <ThemedText>Username</ThemedText>
                             <TextInput
                                 style={[styles.input, { color: colors.text, backgroundColor: sectionBg, borderColor: colors.icon + '30', fontSize: currentFontSizes.base }]}
                                 value={tempUsername}
@@ -379,9 +392,9 @@ export default function Profile({ navigation }) {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: colors.text, fontSize: currentFontSizes.base }]}>Instagram ID</Text>
+                            <ThemedText>Instagram ID</ThemedText>
                             <View style={styles.usernameInputWrapper}>
-                                <Text style={[styles.atSymbol, { color: colors.icon, fontSize: currentFontSizes.base }]}>@</Text>
+                                <ThemedText>@</ThemedText>
                                 <TextInput
                                     style={[styles.input, styles.usernameInput, { color: colors.text, backgroundColor: sectionBg, borderColor: colors.icon + '30', fontSize: currentFontSizes.base }]}
                                     value={tempInstagramId}
@@ -396,7 +409,7 @@ export default function Profile({ navigation }) {
                         {isArtist && (
                             <>
                                 <View style={styles.inputGroup}>
-                                    <Text style={[styles.label, { color: colors.text, fontSize: currentFontSizes.base }]}>Bio</Text>
+                                    <ThemedText>Bio</ThemedText>
                                     <TextInput
                                         style={[styles.input, styles.bioInput, { color: colors.text, backgroundColor: sectionBg, borderColor: colors.icon + '30', fontSize: currentFontSizes.base }]}
                                         value={tempBio}
@@ -408,7 +421,7 @@ export default function Profile({ navigation }) {
                                     />
                                 </View>
                                 <View style={styles.inputGroup}>
-                                    <Text style={[styles.label, { color: colors.text, fontSize: currentFontSizes.base }]}>Genre(s)</Text>
+                                    <ThemedText>Genre(s)</ThemedText>
                                     <TextInput
                                         style={[styles.input, { color: colors.text, backgroundColor: sectionBg, borderColor: colors.icon + '30', fontSize: currentFontSizes.base }]}
                                         value={tempGenres}
@@ -418,7 +431,7 @@ export default function Profile({ navigation }) {
                                     />
                                 </View>
                                 <View style={styles.inputGroup}>
-                                    <Text style={[styles.label, { color: colors.text, fontSize: currentFontSizes.base }]}>Similar artists</Text>
+                                    <ThemedText>Similar artists</ThemedText>
                                     <TextInput
                                         style={[styles.input, { color: colors.text, backgroundColor: sectionBg, borderColor: colors.icon + '30', fontSize: currentFontSizes.base }]}
                                         value={tempSimilarArtists}
@@ -431,7 +444,7 @@ export default function Profile({ navigation }) {
                         )}
 
                         <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.tint }]} onPress={handleSave} activeOpacity={0.8}>
-                            <Text style={[styles.saveButtonText, { fontSize: currentFontSizes.button }]}>Save Changes</Text>
+                            <ThemedText>Save Changes</ThemedText>
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
@@ -443,7 +456,7 @@ export default function Profile({ navigation }) {
                     <TouchableOpacity style={styles.sidebarBackdrop} activeOpacity={1} onPress={closeSidebar} />
                     <Animated.View style={[styles.sidebar, { backgroundColor: colors.background, transform: [{ translateX: sidebarAnim }] }, cardShadow]}>
                         <View style={styles.sidebarHeader}>
-                            <Text style={[styles.sidebarTitle, { color: colors.text, fontSize: currentFontSizes.title }]}>Settings</Text>
+                            <ThemedText>Settings</ThemedText>
                             <TouchableOpacity onPress={closeSidebar}>
                                 <Ionicons name="close" size={28} color={colors.icon} />
                             </TouchableOpacity>
@@ -467,6 +480,44 @@ export default function Profile({ navigation }) {
                                 <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Font Size</Text>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
                             </TouchableOpacity>
+
+                            {/* <TouchableOpacity
+                                style={[styles.settingsItem, { borderBottomWidth: 0 }]}
+                                activeOpacity={0.7}
+                                onPress={toggleDyslexicMode}
+                            >
+                                <Ionicons name="text-outline" size={24} color={colors.text} />
+                                <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>
+                                    Dyslexic Mode
+                                </Text>
+                                <Switch
+                                    value={isDyslexicMode}
+                                    onValueChange={toggleDyslexicMode}
+                                    trackColor={{ false: colors.icon + '30', true: colors.tint + '60' }}
+                                    thumbColor={isDyslexicMode ? colors.tint : '#f4f3f4'}
+                                />
+                            </TouchableOpacity> */}
+
+                            <View 
+  style={[styles.settingsItem, { borderBottomWidth: 0, paddingRight: 0 }]}
+>
+  <Ionicons name="book-outline" size={24} color={colors.text} />
+  <ThemedText style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>
+    Dyslexic Mode
+  </ThemedText>
+  <Switch
+    value={isDyslexicMode}
+    onValueChange={(value) => {
+      console.log('Switch toggled to:', value);
+      console.log('Current isDyslexicMode:', isDyslexicMode);
+      toggleDyslexicMode();
+    }}
+    trackColor={{ false: colors.icon + '30', true: colors.tint + '60' }}
+    thumbColor={isDyslexicMode ? colors.tint : '#f4f3f4'}
+    ios_backgroundColor={colors.icon + '30'}
+  />
+</View>
+
                         </View>
                     </Animated.View>
                 </View>
