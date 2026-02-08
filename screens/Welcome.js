@@ -62,9 +62,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   vinyl: {
-    width: 80,
-    height: 80,
-    marginBottom: 32,
+    width: 130,
+    height: 130,
+    marginBottom: 40,
   },
   title: {
     fontSize: 36,

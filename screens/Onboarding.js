@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { supabase } from '../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,7 +27,7 @@ const AnimatedVinyl = () => {
   return (
     <Animated.Image
       source={require('../assets/images/vinyl.png')}
-      style={{ width: 60, height: 60, transform: [{ rotate: spin }], marginBottom: 20 }}
+      style={{ width: 100, height: 100, transform: [{ rotate: spin }], marginBottom: 24 }}
     />
   );
 };
@@ -39,14 +39,15 @@ export default function OnboardingScreen({ navigation }) {
   const [instagram, setInstagram] = useState('');
   const [genre, setGenre] = useState('');
   const [isArtist, setIsArtist] = useState(null);
-  const [artist, setArtist] = useState('');
+  const [favoriteArtistsInput, setFavoriteArtistsInput] = useState('');
+  const [similarArtistsInput, setSimilarArtistsInput] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Step 6 = "Making your profile…" (after sign up + profile insert)
+  // Step 7 = "Making your profile…" (after sign up + profile insert)
   useEffect(() => {
-    if (step !== 6) return;
+    if (step !== 7) return;
     const run = async () => {
       setLoading(true);
       try {
@@ -54,7 +55,11 @@ export default function OnboardingScreen({ navigation }) {
         const userId = data.user?.id;
         if (!userId) throw new Error('No user id after sign up');
 
-        const favoriteSongs = artist ? [{ title: artist, artist }] : [];
+        const favoriteNames = favoriteArtistsInput.split(',').map((s) => s.trim()).filter(Boolean);
+        const favoriteSongs = favoriteNames.map((name) => ({ title: name, artist: name }));
+        const similarArtists = isArtist === true
+          ? similarArtistsInput.split(',').map((s) => s.trim()).filter(Boolean)
+          : [];
         const { error: rpcError } = await supabase.rpc('create_profile', {
           p_id: userId,
           p_name: name.trim() || 'User',
@@ -64,7 +69,7 @@ export default function OnboardingScreen({ navigation }) {
           p_favorite_artists: favoriteSongs,
           p_bio: null,
           p_profile_image_url: null,
-          p_similar_artists: null,
+          p_similar_artists: similarArtists.length ? similarArtists : null,
         });
 
         if (rpcError) throw rpcError;
@@ -88,7 +93,7 @@ export default function OnboardingScreen({ navigation }) {
     />
   );
 
-  if (step === 6) {
+  if (step === 7) {
     return (
       <View style={styles.containerCenter}>
         <AnimatedVinyl />
@@ -100,8 +105,17 @@ export default function OnboardingScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.title}>Welcome new user…</Text>
 
         {/* Name (required) */}
@@ -207,34 +221,66 @@ export default function OnboardingScreen({ navigation }) {
           </View>
         )}
 
-        {/* Artists (required) */}
+        {/* Favorite artists (required) – comma-separated, multiple */}
         {step >= 4 && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
               <Text style={styles.label}>Enter your favorite artists</Text>
-              <View style={styles.dropdown}>
-                <Picker
-                  selectedValue={artist}
-                  onValueChange={(value) => {
-                    setArtist(value);
-                    if (value) setStep(5);
-                  }}>
-                  <Picker.Item label="Select an artist…" value="" />
-                  <Picker.Item label="Local UT Artist" value="Local UT Artist" />
-                  <Picker.Item label="Taylor Swift" value="Taylor Swift" />
-                  <Picker.Item label="Drake" value="Drake" />
-                  <Picker.Item label="Frank Ocean" value="Frank Ocean" />
-                  <Picker.Item label="Bad Bunny" value="Bad Bunny" />
-                  <Picker.Item label="Sabrina Carpenter" value="Sabrina Carpenter" />
-                </Picker>
-              </View>
+              <Text style={styles.hint}>Comma-separated, e.g. Taylor Swift, Drake, Frank Ocean</Text>
+              <TextInput
+                style={styles.input}
+                value={favoriteArtistsInput}
+                onChangeText={setFavoriteArtistsInput}
+                placeholder="Artist 1, Artist 2, ..."
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => {
+                  if (!favoriteArtistsInput.trim()) {
+                    Alert.alert('Required', 'Enter at least one favorite artist.');
+                    return;
+                  }
+                  setStep(isArtist ? 5 : 6);
+                }}
+                disabled={loading}
+              >
+                <Text style={styles.createButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Similar artists (artists only) */}
+        {step === 5 && isArtist && (
+          <View style={styles.row}>
+            {vinylIcon}
+            <View style={styles.block}>
+              <Text style={styles.label}>Artists you're similar to</Text>
+              <Text style={styles.hint}>Comma-separated, e.g. Taylor Swift, Phoebe Bridgers</Text>
+              <TextInput
+                style={styles.input}
+                value={similarArtistsInput}
+                onChangeText={setSimilarArtistsInput}
+                placeholder="Artist 1, Artist 2, ..."
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => setStep(6)}
+                disabled={loading}
+              >
+                <Text style={styles.createButtonText}>Continue</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
 
         {/* Create account: email + password */}
-        {step >= 5 && step < 6 && (
+        {step >= 6 && step < 7 && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
@@ -266,7 +312,7 @@ export default function OnboardingScreen({ navigation }) {
                     Alert.alert('Invalid input', 'Use a valid email and a password of at least 6 characters.');
                     return;
                   }
-                  setStep(6);
+                  setStep(7);
                 }}
                 disabled={loading}
               >
@@ -285,7 +331,7 @@ export default function OnboardingScreen({ navigation }) {
           <Text style={styles.loginText}>Already have an account? Log in</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -299,7 +345,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 120,
+    paddingBottom: 200,
+    flexGrow: 1,
   },
   containerCenter: {
     flex: 1,
