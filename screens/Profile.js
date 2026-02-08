@@ -71,8 +71,14 @@ export default function Profile({ navigation }) {
     };
 
     useEffect(() => {
-        fetchSongs();
-    }, []);
+        if (user?.id) fetchSongs();
+    }, [user?.id]);
+
+    // Keep displayed name/handle in sync with logged-in user profile
+    useEffect(() => {
+        setTempUsername(user?.username ?? '');
+        setTempInstagramId(user?.instagramId ?? '');
+    }, [user?.username, user?.instagramId]);
 
     // Add a new song
     const handleAddSong = async () => {
@@ -131,8 +137,8 @@ export default function Profile({ navigation }) {
 
 
     // --- Profile modals and sidebar ---
-    const handleSave = () => {
-        updateUser({
+    const handleSave = async () => {
+        await updateUser({
             username: tempUsername,
             instagramId: tempInstagramId,
         });
@@ -172,9 +178,8 @@ export default function Profile({ navigation }) {
                 {
                     text: 'Log Out',
                     style: 'destructive',
-                    onPress: () => {
-                        logout();
-                        navigation.getParent()?.navigate('Login');
+                    onPress: async () => {
+                        await logout();
                     },
                 },
             ]

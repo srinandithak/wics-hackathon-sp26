@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image, Alert, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { supabase } from '../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
 
 const AnimatedVinyl = () => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -32,46 +33,50 @@ const AnimatedVinyl = () => {
 };
 
 export default function OnboardingScreen({ navigation }) {
+  const { signUp } = useAuth();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [instagram, setInstagram] = useState('');
   const [genre, setGenre] = useState('');
   const [isArtist, setIsArtist] = useState(null);
-  const[artist, setArtist] = useState(''); /*favorite artist*/
-  const [listener, setListener] = useState(true);
+  const [artist, setArtist] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Handle final loading + navigation
+  // Step 6 = "Making your profile…" (after sign up + profile insert)
   useEffect(() => {
-    if (step === 5) {
-      const createProfile = async () => {
-        const { data, error } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              name: name,
-              user_type: isArtist ? 'listener' : 'artist',
-              instagram_handle: instagram || null,
-              genres: genre ? [genre] : [],
-              favorite_artists: artist ? [artist] : [],
-            },
-          ]);
+    if (step !== 6) return;
+    const run = async () => {
+      setLoading(true);
+      try {
+        const data = await signUp(email.trim(), password);
+        const userId = data.user?.id;
+        if (!userId) throw new Error('No user id after sign up');
 
-        if (error) {
-          console.log('Error creating profile:', error);
-        } else {
-          console.log('Profile created:', data);
-        }
-      };
+        const favoriteSongs = artist ? [{ title: artist, artist }] : [];
+        const { error: rpcError } = await supabase.rpc('create_profile', {
+          p_id: userId,
+          p_name: name.trim() || 'User',
+          p_user_type: isArtist === true ? 'artist' : 'listener',
+          p_instagram_handle: instagram.trim() || null,
+          p_genres: genre ? [genre] : [],
+          p_favorite_artists: favoriteSongs,
+          p_bio: null,
+          p_profile_image_url: null,
+          p_similar_artists: null,
+        });
 
-      createProfile(); // call the async function
-
-      const timer = setTimeout(() => {
-        navigation.replace('Main');
-      }, 5000);
-
-      return () => clearTimeout(timer); // cleanup timer
-    }
+        if (rpcError) throw rpcError;
+        // Auth state will update and navigator will switch to Main
+      } catch (err) {
+        console.error(err);
+        Alert.alert('Error', err.message || 'Sign up or profile creation failed. Try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
   }, [step]);
 
 
@@ -83,12 +88,13 @@ export default function OnboardingScreen({ navigation }) {
     />
   );
 
-  if (step === 5) {
+  if (step === 6) {
     return (
       <View style={styles.containerCenter}>
         <AnimatedVinyl />
         <Text style={styles.title}>Thank you.</Text>
         <Text style={styles.subtitle}>Making your profile…</Text>
+        {loading && <ActivityIndicator size="large" style={{ marginTop: 16 }} />}
       </View>
     );
   }
@@ -227,6 +233,49 @@ export default function OnboardingScreen({ navigation }) {
           </View>
         )}
 
+        {/* Create account: email + password */}
+        {step >= 5 && step < 6 && (
+          <View style={styles.row}>
+            {vinylIcon}
+            <View style={styles.block}>
+              <Text style={styles.label}>Create your account</Text>
+              <Text style={styles.hint}>Use your @my.utexas.edu email</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@my.utexas.edu"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!loading}
+              />
+              <TextInput
+                style={[styles.input, { marginTop: 10 }]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password (min 6 characters)"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                secureTextEntry
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => {
+                  if (!email.trim() || !password || password.length < 6) {
+                    Alert.alert('Invalid input', 'Use a valid email and a password of at least 6 characters.');
+                    return;
+                  }
+                  setStep(6);
+                }}
+                disabled={loading}
+              >
+                <Text style={styles.createButtonText}>Create account</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Login link */}
         <TouchableOpacity
           style={styles.loginLink}
@@ -267,6 +316,24 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     marginBottom: 20,
+  },
+  hint: {
+    fontSize: 13,
+    marginBottom: 8,
+    opacity: 0.9,
+  },
+  createButton: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    marginTop: 16,
+    alignSelf: 'flex-start',
+  },
+  createButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
   row: {
     flexDirection: 'row',

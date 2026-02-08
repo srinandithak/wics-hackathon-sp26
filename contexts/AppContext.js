@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext(null);
 
@@ -11,18 +13,31 @@ const defaultFontSizes = {
 };
 
 export function AppProvider({ children }) {
-  const [user, setUser] = useState({
-    username: 'Your Name',
-    instagramId: 'username',
-  });
+  const { profile, signOut: authSignOut, refreshProfile } = useAuth();
   const [currentFontSizes] = useState(defaultFontSizes);
 
-  const updateUser = (updates) => {
-    setUser((prev) => ({ ...prev, ...updates }));
+  const user = profile
+    ? {
+        id: profile.id,
+        username: profile.name ?? 'Your Name',
+        instagramId: profile.instagram_handle ?? 'username',
+      }
+    : { id: null, username: 'Your Name', instagramId: 'username' };
+
+  const updateUser = async (updates) => {
+    if (!user.id) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        ...(updates.username != null && { name: updates.username }),
+        ...(updates.instagramId != null && { instagram_handle: updates.instagramId }),
+      })
+      .eq('id', user.id);
+    if (!error) await refreshProfile();
   };
 
-  const logout = () => {
-    setUser({ username: 'Your Name', instagramId: 'username' });
+  const logout = async () => {
+    await authSignOut();
   };
 
   const value = {
