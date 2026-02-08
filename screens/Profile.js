@@ -16,6 +16,7 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    Image
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../components/themed-text';
@@ -25,6 +26,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { supabase } from '../lib/supabase';
 import { postsToSongs, songsToPosts } from '../lib/mySongsUtils';
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // optional if you want persistence
+
 
 const cardShadow = Platform.select({
     ios: {
@@ -45,13 +49,13 @@ export default function Profile({ navigation }) {
     const sectionBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
 
     const insets = useSafeAreaInsets();
-const { user, updateUser, logout, currentFontSizes, isDyslexicMode, toggleDyslexicMode, settings, updateNotifications, updatePrivacy, updateFontSize } = useApp();
+    const { user, updateUser, logout, currentFontSizes, isDyslexicMode, toggleDyslexicMode, settings, updateNotifications, updatePrivacy, updateFontSize } = useApp();
 
-// Add this right after to see the values
-useEffect(() => {
-  console.log('isDyslexicMode:', isDyslexicMode);
-  console.log('toggleDyslexicMode:', toggleDyslexicMode);
-}, [isDyslexicMode]);
+    // Add this right after to see the values
+    useEffect(() => {
+        console.log('isDyslexicMode:', isDyslexicMode);
+        console.log('toggleDyslexicMode:', toggleDyslexicMode);
+    }, [isDyslexicMode]);
 
     const { profile, refreshProfile } = useAuth();
     const isArtist = profile?.user_type === 'artist';
@@ -75,6 +79,44 @@ useEffect(() => {
     const [artistInput, setArtistInput] = useState('');
     const [userSongs, setUserSongs] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [avatarUri, setAvatarUri] = useState(null); // local URI
+
+    useEffect(() => {
+        setAvatarUri(user.avatar_url || null);
+    }, [user.avatar_url]);
+
+
+    const pickImage = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission required', 'We need permission to access your photos.');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: 'Images', // just a string now
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+
+
+        if (!result.canceled) {
+            const uri = result.assets[0].uri;
+            setAvatarUri(uri);
+
+            // Optional: persist locally
+            await AsyncStorage.setItem('@profile_avatar', uri);
+        }
+    };
+
+    useEffect(() => {
+        const loadAvatar = async () => {
+            const savedUri = await AsyncStorage.getItem('@profile_avatar');
+            if (savedUri) setAvatarUri(savedUri);
+        };
+        loadAvatar();
+    }, []);
 
 
     // --- Fetch user's songs ---
@@ -278,11 +320,24 @@ useEffect(() => {
                     {/* Profile Card */}
                     <View style={[styles.profileCard, { backgroundColor: cardBg }, cardShadow]}>
                         <View style={styles.avatarWrap}>
+                            <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
+                                {avatarUri && <Image source={{ uri: avatarUri }} style={styles.avatar} />}
+                            </View>
+                            <TouchableOpacity
+                                style={[styles.editAvatarBtn, { backgroundColor: colors.tint }]}
+                                onPress={pickImage}
+                            >
+                                <Ionicons name="camera" size={16} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
+
+
+                        {/* <View style={styles.avatarWrap}>
                             <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
                             <TouchableOpacity style={[styles.editAvatarBtn, { backgroundColor: colors.tint }]}>
                                 <Ionicons name="camera" size={16} color="#fff" />
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                         <ThemedText>{user.username}</ThemedText>
                         <ThemedText style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>@{user.instagramId}</ThemedText>
                         {isArtist && (profile?.bio || profile?.genres?.length > 0 || profile?.similar_artists?.length > 0) && (
@@ -542,25 +597,25 @@ useEffect(() => {
                                 />
                             </TouchableOpacity> */}
 
-                            <View 
-  style={[styles.settingsItem, { borderBottomWidth: 0, paddingRight: 0 }]}
->
-  <Ionicons name="book-outline" size={24} color={colors.text} />
-  <ThemedText style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>
-    Dyslexic Mode
-  </ThemedText>
-  <Switch
-    value={isDyslexicMode}
-    onValueChange={(value) => {
-      console.log('Switch toggled to:', value);
-      console.log('Current isDyslexicMode:', isDyslexicMode);
-      toggleDyslexicMode();
-    }}
-    trackColor={{ false: colors.icon + '30', true: colors.tint + '60' }}
-    thumbColor={isDyslexicMode ? colors.tint : '#f4f3f4'}
-    ios_backgroundColor={colors.icon + '30'}
-  />
-</View>
+                            <View
+                                style={[styles.settingsItem, { borderBottomWidth: 0, paddingRight: 0 }]}
+                            >
+                                <Ionicons name="book-outline" size={24} color={colors.text} />
+                                <ThemedText style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>
+                                    Dyslexic Mode
+                                </ThemedText>
+                                <Switch
+                                    value={isDyslexicMode}
+                                    onValueChange={(value) => {
+                                        console.log('Switch toggled to:', value);
+                                        console.log('Current isDyslexicMode:', isDyslexicMode);
+                                        toggleDyslexicMode();
+                                    }}
+                                    trackColor={{ false: colors.icon + '30', true: colors.tint + '60' }}
+                                    thumbColor={isDyslexicMode ? colors.tint : '#f4f3f4'}
+                                    ios_backgroundColor={colors.icon + '30'}
+                                />
+                            </View>
 
                         </View>
                     </Animated.View>
@@ -663,7 +718,13 @@ const styles = StyleSheet.create({
     title: { fontWeight: '800', letterSpacing: -0.5 },
     profileCard: { borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 24 },
     avatarWrap: { position: 'relative', marginBottom: 14 },
-    avatar: { width: 88, height: 88, borderRadius: 44 },
+    avatar: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        overflow: 'hidden', // important to crop image to circle
+    },
+
     editAvatarBtn: { position: 'absolute', right: 0, bottom: 0, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
     name: { fontWeight: '800' },
     handle: { marginTop: 4, marginBottom: 16, opacity: 0.9 },
