@@ -396,7 +396,7 @@ export default function Profile({ navigation }) {
                             </View>
                             <ThemedText>My Songs</ThemedText>
                         </View>
-                        <ThemedText>
+                        <ThemedText style={[styles.mySongsHint, { marginBottom: 20, marginTop: 15 }]}>
                             Add your favorite songs for other people to see when they click your profile!
                         </ThemedText>
 
