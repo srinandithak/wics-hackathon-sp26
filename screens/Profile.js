@@ -245,14 +245,19 @@ useEffect(() => {
                 <ScrollView contentContainerStyle={{ padding: 20 }}>
                     {/* Profile Card */}
                     <View style={[styles.profileCard, { backgroundColor: cardBg }, cardShadow]}>
-                        <View style={[styles.avatarWrap, { backgroundColor: colors.tint + '25' }]}>
+                        <View style={styles.avatarWrap}>
                             <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
                             <TouchableOpacity style={[styles.editAvatarBtn, { backgroundColor: colors.tint }]}>
                                 <Ionicons name="camera" size={16} color="#fff" />
                             </TouchableOpacity>
                         </View>
+<<<<<<< HEAD
                         <ThemedText>{user.username}</ThemedText>
                         <ThemedText style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>@{user.instagramId}</ThemedText>
+=======
+                        <Text style={[styles.name, { color: colors.text, fontSize: currentFontSizes.large }]}>{user.username}</Text>
+                        <Text style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>{user.instagramId ? `@${user.instagramId}` : '@'}</Text>
+>>>>>>> c40e96e3c61c6e798c882797dbb97148d0620729
                         {isArtist && (profile?.bio || profile?.genres?.length > 0 || profile?.similar_artists?.length > 0) && (
                             <View style={[styles.artistPreview, { backgroundColor: sectionBg }]}>
                                 {profile?.bio ? (
