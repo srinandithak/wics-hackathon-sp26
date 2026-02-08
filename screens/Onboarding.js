@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { supabase } from '../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Easing, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const AnimatedVinyl = () => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -33,6 +34,7 @@ const AnimatedVinyl = () => {
 };
 
 export default function OnboardingScreen({ navigation }) {
+  const { currentFontSizes } = useApp();
   const { signUp, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
@@ -56,6 +58,7 @@ export default function OnboardingScreen({ navigation }) {
         const userId = data.user?.id;
         if (!userId) throw new Error('No user id after sign up');
 
+        const favoriteArtistNames = favoriteArtistsInput.split(',').map((s) => s.trim()).filter(Boolean);
         const similarArtists = isArtist === true
           ? similarArtistsInput.split(',').map((s) => s.trim()).filter(Boolean)
           : [];
@@ -65,7 +68,7 @@ export default function OnboardingScreen({ navigation }) {
           p_user_type: isArtist === true ? 'artist' : 'listener',
           p_instagram_handle: instagram.trim() || null,
           p_genres: genre ? [genre] : [],
-          p_favorite_artists: [],
+          p_favorite_artist_names: favoriteArtistNames,
           p_bio: isArtist === true ? (artistBio.trim() || null) : null,
           p_profile_image_url: null,
           p_similar_artists: similarArtists.length ? similarArtists : null,
@@ -97,8 +100,8 @@ export default function OnboardingScreen({ navigation }) {
     return (
       <View style={styles.containerCenter}>
         <AnimatedVinyl />
-        <Text style={styles.title}>Thank you.</Text>
-        <Text style={styles.subtitle}>Making your profile…</Text>
+        <Text style={[styles.title, { fontSize: currentFontSizes.title }]}>Thank you.</Text>
+        <Text style={[styles.subtitle, { fontSize: currentFontSizes.base }]}>Making your profile…</Text>
         {loading && <ActivityIndicator size="large" style={{ marginTop: 16 }} />}
       </View>
     );
@@ -116,16 +119,16 @@ export default function OnboardingScreen({ navigation }) {
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Welcome new user…</Text>
+        <Text style={[styles.title, { fontSize: currentFontSizes.title }]}>Welcome new user…</Text>
 
         {/* Name (required) */}
         {step >= 0 && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Enter your first and last name</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Enter your first and last name</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontSize: currentFontSizes.base }]}
                 value={name}
                 onChangeText={setName}
                 returnKeyType="next"
@@ -141,7 +144,7 @@ export default function OnboardingScreen({ navigation }) {
     {vinylIcon}
 
     <View style={{ flex: 1, marginLeft: 10 }}>
-      <Text style={styles.label}>Are you an artist?</Text>
+      <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Are you an artist?</Text>
 
       {/* Yes */}
       <TouchableOpacity
@@ -155,7 +158,7 @@ export default function OnboardingScreen({ navigation }) {
         <View style={[styles.checkbox, isArtist === true && styles.checkboxChecked]}>
           {isArtist === true && <MaterialIcons name="check" size={20} color="white" />}
         </View>
-        <Text style={styles.checkboxLabel}>Yes</Text>
+        <Text style={[styles.checkboxLabel, { fontSize: currentFontSizes.base }]}>Yes</Text>
       </TouchableOpacity>
 
       {/* No */}
@@ -170,7 +173,7 @@ export default function OnboardingScreen({ navigation }) {
         <View style={[styles.checkbox, isArtist === false && styles.checkboxChecked]}>
           {isArtist === false && <MaterialIcons name="check" size={20} color="white" />}
         </View>
-        <Text style={styles.checkboxLabel}>No</Text>
+        <Text style={[styles.checkboxLabel, { fontSize: currentFontSizes.base }]}>No</Text>
       </TouchableOpacity>
     </View>
   </View>
@@ -182,16 +185,16 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Enter your Instagram</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Enter your Instagram</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontSize: currentFontSizes.base }]}
                 value={instagram}
                 onChangeText={setInstagram}
                 returnKeyType="next"
                 onSubmitEditing={() => setStep(3)}
               />
               <TouchableOpacity style={styles.spotifySkipWrap} onPress={() => setStep(3)} activeOpacity={0.7}>
-                <Text style={styles.spotifySkip}>Skip</Text>
+                <Text style={[styles.spotifySkip, { fontSize: currentFontSizes.base }]}>Skip</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -202,17 +205,17 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Connect your music</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Connect your music</Text>
               <TouchableOpacity
                 style={styles.spotifyButton}
                 onPress={() => {}}
                 activeOpacity={0.8}
               >
                 <Image source={require('../assets/images/spotify.png')} style={styles.spotifyLogoImage} resizeMode="contain" />
-                <Text style={styles.spotifyButtonText}>Integrate with Spotify</Text>
+                <Text style={[styles.spotifyButtonText, { fontSize: currentFontSizes.base }]}>Integrate with Spotify</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.spotifySkipWrap} onPress={() => setStep(4)} activeOpacity={0.7}>
-                <Text style={styles.spotifySkip}>Skip</Text>
+                <Text style={[styles.spotifySkip, { fontSize: currentFontSizes.base }]}>Skip</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -223,7 +226,7 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Enter your favorite genre of music</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Enter your favorite genre of music</Text>
               <View style={styles.dropdown}>
                 <Picker
                   selectedValue={genre}
@@ -250,10 +253,10 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Enter your favorite artists</Text>
-              <Text style={styles.hint}>Comma-separated, e.g. Taylor Swift, Drake, Frank Ocean</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Enter your favorite artists</Text>
+              <Text style={[styles.hint, { fontSize: currentFontSizes.caption }]}>Comma-separated, e.g. Taylor Swift, Drake, Frank Ocean</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontSize: currentFontSizes.base }]}
                 value={favoriteArtistsInput}
                 onChangeText={setFavoriteArtistsInput}
                 placeholder="Artist 1, Artist 2, ..."
@@ -271,7 +274,7 @@ export default function OnboardingScreen({ navigation }) {
                 }}
                 disabled={loading}
               >
-                <Text style={styles.createButtonText}>Continue</Text>
+                <Text style={[styles.createButtonText, { fontSize: currentFontSizes.subtitle }]}>Continue</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -282,10 +285,10 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Artists you're similar to</Text>
-              <Text style={styles.hint}>Comma-separated, e.g. Taylor Swift, Phoebe Bridgers</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Artists you're similar to</Text>
+              <Text style={[styles.hint, { fontSize: currentFontSizes.caption }]}>Comma-separated, e.g. Taylor Swift, Phoebe Bridgers</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontSize: currentFontSizes.base }]}
                 value={similarArtistsInput}
                 onChangeText={setSimilarArtistsInput}
                 placeholder="Artist 1, Artist 2, ..."
@@ -297,7 +300,7 @@ export default function OnboardingScreen({ navigation }) {
                 onPress={() => setStep(7)}
                 disabled={loading}
               >
-                <Text style={styles.createButtonText}>Continue</Text>
+                <Text style={[styles.createButtonText, { fontSize: currentFontSizes.subtitle }]}>Continue</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -308,10 +311,10 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Short bio (optional)</Text>
-              <Text style={styles.hint}>This will show on your artist profile</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Short bio (optional)</Text>
+              <Text style={[styles.hint, { fontSize: currentFontSizes.caption }]}>This will show on your artist profile</Text>
               <TextInput
-                style={[styles.input, styles.inputMultiline]}
+                style={[styles.input, styles.inputMultiline, { fontSize: currentFontSizes.base }]}
                 value={artistBio}
                 onChangeText={setArtistBio}
                 placeholder="e.g. Singer-songwriter from Austin..."
@@ -325,7 +328,7 @@ export default function OnboardingScreen({ navigation }) {
                 onPress={() => setStep(8)}
                 disabled={loading}
               >
-                <Text style={styles.createButtonText}>Continue</Text>
+                <Text style={[styles.createButtonText, { fontSize: currentFontSizes.subtitle }]}>Continue</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -336,10 +339,10 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Create your account</Text>
-              <Text style={styles.hint}>Use your @my.utexas.edu email</Text>
+              <Text style={[styles.label, { fontSize: currentFontSizes.base }]}>Create your account</Text>
+              <Text style={[styles.hint, { fontSize: currentFontSizes.caption }]}>Use your @my.utexas.edu email</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontSize: currentFontSizes.base }]}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="you@my.utexas.edu"
@@ -349,7 +352,7 @@ export default function OnboardingScreen({ navigation }) {
                 editable={!loading}
               />
               <TextInput
-                style={[styles.input, { marginTop: 10 }]}
+                style={[styles.input, { marginTop: 10, fontSize: currentFontSizes.base }]}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Password (min 6 characters)"
@@ -368,7 +371,7 @@ export default function OnboardingScreen({ navigation }) {
                 }}
                 disabled={loading}
               >
-                <Text style={styles.createButtonText}>Create account</Text>
+                <Text style={[styles.createButtonText, { fontSize: currentFontSizes.subtitle }]}>Create account</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -380,7 +383,7 @@ export default function OnboardingScreen({ navigation }) {
           onPress={() => navigation.navigate('Login')}
           activeOpacity={0.7}
         >
-          <Text style={styles.loginText}>Already have an account? Log in</Text>
+          <Text style={[styles.loginText, { fontSize: currentFontSizes.base }]}>Already have an account? Log in</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

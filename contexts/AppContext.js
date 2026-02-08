@@ -1,20 +1,53 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
 const AppContext = createContext(null);
 
-const defaultFontSizes = {
-  title: 28,
-  large: 22,
-  base: 15,
-  button: 16,
-  subtitle: 18,
+const SETTINGS_KEY = 'app_settings';
+
+const defaultSettings = {
+  fontSize: 'medium',
+  notifications: {
+    pushEnabled: true,
+    emailEnabled: false,
+    eventReminders: true,
+    newFollowers: true,
+  },
+  privacy: {
+    profilePublic: true,
+    showEmail: false,
+    allowMessages: true,
+    showLocation: false,
+  },
+};
+
+const fontSizes = {
+  small: { base: 14, subtitle: 16, title: 24, large: 20, button: 14, caption: 11, hero: 36 },
+  medium: { base: 16, subtitle: 18, title: 28, large: 22, button: 16, caption: 12, hero: 44 },
+  large: { base: 18, subtitle: 20, title: 32, large: 24, button: 18, caption: 14, hero: 52 },
 };
 
 export function AppProvider({ children }) {
   const { profile, signOut: authSignOut, refreshProfile } = useAuth();
-  const [currentFontSizes] = useState(defaultFontSizes);
+  const [settings, setSettings] = useState(defaultSettings);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(SETTINGS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setSettings((prev) => ({ ...defaultSettings, ...parsed }));
+        }
+      } catch (_) {}
+    })();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)).catch(() => {});
+  }, [settings]);
 
   const user = profile
     ? {
@@ -40,11 +73,36 @@ export function AppProvider({ children }) {
     await authSignOut();
   };
 
+  const updateNotifications = (updates) => {
+    setSettings((prev) => ({
+      ...prev,
+      notifications: { ...prev.notifications, ...updates },
+    }));
+  };
+
+  const updatePrivacy = (updates) => {
+    setSettings((prev) => ({
+      ...prev,
+      privacy: { ...prev.privacy, ...updates },
+    }));
+  };
+
+  const updateFontSize = (size) => {
+    if (['small', 'medium', 'large'].includes(size)) {
+      setSettings((prev) => ({ ...prev, fontSize: size }));
+    }
+  };
+
   const value = {
     user,
     updateUser,
     logout,
-    currentFontSizes,
+    settings,
+    updateNotifications,
+    updatePrivacy,
+    updateFontSize,
+    fontSizes,
+    currentFontSizes: fontSizes[settings.fontSize],
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

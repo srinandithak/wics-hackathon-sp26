@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
+import { useApp } from '../contexts/AppContext';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { discoverStyles } from '../styles/styles';
@@ -43,6 +44,7 @@ export default function Calendar({ navigation }) {
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
+  const { currentFontSizes } = useApp();
   const { confirmedEvents } = useConfirmedEvents();
 
   const [viewYear, setViewYear] = useState(2026);
@@ -101,7 +103,7 @@ export default function Calendar({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16 }]}>Calendar</Text>
+      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16, fontSize: currentFontSizes.hero }]}>Calendar</Text>
 
       <View style={[styles.calendarCard, { backgroundColor: colors.background }]}>
         <View style={styles.calendarHeader}>
@@ -115,7 +117,7 @@ export default function Calendar({ navigation }) {
           >
             <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.monthTitle, { color: colors.text }]}>
+          <Text style={[styles.monthTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>
             {MONTH_NAMES[viewMonth]} {viewYear}
           </Text>
           <TouchableOpacity
@@ -131,7 +133,7 @@ export default function Calendar({ navigation }) {
         </View>
         <View style={styles.weekdayRow}>
           {WEEKDAYS.map((d, i) => (
-            <Text key={i} style={[styles.weekday, { color: colors.icon }]}>
+            <Text key={i} style={[styles.weekday, { color: colors.icon, fontSize: currentFontSizes.caption }]}>
               {d}
             </Text>
           ))}
@@ -160,7 +162,7 @@ export default function Calendar({ navigation }) {
                 <Text
                   style={[
                     styles.cellDayText,
-                    { color: isSelected ? '#fff' : colors.text },
+                    { color: isSelected ? '#fff' : colors.text, fontSize: currentFontSizes.base },
                   ]}
                 >
                   {day}
@@ -175,7 +177,7 @@ export default function Calendar({ navigation }) {
       </View>
 
       <View style={styles.titleRow}>
-        <Text style={[styles.listSectionTitle, { color: colors.text }]}>
+        <Text style={[styles.listSectionTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>
           {selectedDate
             ? `Events on ${MONTH_NAMES[viewMonth].slice(0, 3)} ${selectedDate.day}`
             : 'All events'}
@@ -186,7 +188,7 @@ export default function Calendar({ navigation }) {
             activeOpacity={0.8}
             style={styles.showAllDaysLink}
           >
-            <Text style={{ color: colors.tint, fontSize: 14, fontWeight: '600' }}>
+            <Text style={{ color: colors.tint, fontSize: currentFontSizes.caption, fontWeight: '600' }}>
               Show all days
             </Text>
           </TouchableOpacity>
@@ -203,8 +205,8 @@ export default function Calendar({ navigation }) {
             {confirmedEvents.length === 0 ? (
               <>
                 <Ionicons name="calendar-outline" size={48} color={colors.icon} />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>No events yet</Text>
-                <Text style={[styles.emptyHint, { color: colors.icon }]}>
+                <Text style={[styles.emptyTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>No events yet</Text>
+                <Text style={[styles.emptyHint, { color: colors.icon, fontSize: currentFontSizes.base }]}>
                   Tap "Going" on the Events tab to add events you're attending. They'll show up
                   here.
                 </Text>
@@ -212,8 +214,8 @@ export default function Calendar({ navigation }) {
             ) : selectedDate ? (
               <>
                 <Ionicons name="calendar-outline" size={40} color={colors.icon} />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>No events this day</Text>
-                <Text style={[styles.emptyHint, { color: colors.icon }]}>
+                <Text style={[styles.emptyTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>No events this day</Text>
+                <Text style={[styles.emptyHint, { color: colors.icon, fontSize: currentFontSizes.base }]}>
                   Tap another day or "Show all days" above.
                 </Text>
               </>
@@ -223,21 +225,21 @@ export default function Calendar({ navigation }) {
           filteredEvents.map((ev) => (
             <View key={ev.id} style={[styles.card, { backgroundColor: cardBg }, cardShadow]}>
               <View style={[styles.dateBadge, { backgroundColor: colors.tint }]}>
-                <Text style={styles.dateDay}>{ev.day}</Text>
-                <Text style={styles.dateMonth}>{ev.month}</Text>
+                <Text style={[styles.dateDay, { fontSize: currentFontSizes.large }]}>{ev.day}</Text>
+                <Text style={[styles.dateMonth, { fontSize: currentFontSizes.caption }]}>{ev.month}</Text>
               </View>
               <View style={styles.cardBody}>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>{ev.title}</Text>
+                <Text style={[styles.cardTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{ev.title}</Text>
                 <View style={styles.metaRow}>
                   <Ionicons name="time-outline" size={14} color={colors.icon} />
-                  <Text style={[styles.cardMeta, { color: colors.icon }]}> {ev.time}</Text>
+                  <Text style={[styles.cardMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}> {ev.time}</Text>
                 </View>
                 <View style={styles.metaRow}>
                   <Ionicons name="location-outline" size={14} color={colors.icon} />
-                  <Text style={[styles.cardLocation, { color: colors.icon }]}> {ev.location}</Text>
+                  <Text style={[styles.cardLocation, { color: colors.icon, fontSize: currentFontSizes.caption }]}> {ev.location}</Text>
                 </View>
                 <View style={[styles.pill, { backgroundColor: colors.tint + '22' }]}>
-                  <Text style={[styles.pillText, { color: colors.tint }]}>{ev.venueType}</Text>
+                  <Text style={[styles.pillText, { color: colors.tint, fontSize: currentFontSizes.caption }]}>{ev.venueType}</Text>
                 </View>
               </View>
             </View>

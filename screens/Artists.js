@@ -13,12 +13,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import vinyl from '../assets/images/vinyl.png';
+import { useApp } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { DiscoverColors, discoverStyles } from '../styles/styles';
-import { useAuth } from '../contexts/AuthContext';
 
 
 export default function Artists({ navigation }) {
+    const { currentFontSizes } = useApp();
     const [artists, setArtists] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [selectedArtist, setSelectedArtist] = useState(null);
@@ -31,11 +33,13 @@ export default function Artists({ navigation }) {
         const fetchAndSortArtists = async () => {
             const { data: listenerData } = await supabase
                 .from('profiles')
-                .select('favorite_artists')
+                .select('favorite_artist_names')
                 .eq('id', user.id)
                 .single();
 
-            const listenerFavorites = listenerData?.favorite_artists || [];
+            const listenerFavoriteNames = (listenerData?.favorite_artist_names || []).map((name) =>
+                String(name).trim().toLowerCase()
+            ).filter(Boolean);
 
             const { data: allArtists } = await supabase
                 .from('profiles')
@@ -43,30 +47,28 @@ export default function Artists({ navigation }) {
                 .eq('user_type', 'artist');
 
             const scoredArtists = allArtists.map((artist) => {
-                const similar = artist.similar_artists || [];
+                const similar = (artist.similar_artists || []).map((s) => String(s).trim().toLowerCase());
 
-                if (listenerFavorites.length === 0) {
+                if (similar.length === 0) {
                     return { ...artist, score: 0 };
                 }
 
-                const matchCount = listenerFavorites.filter(fav =>
-                    similar.includes(fav)
-                ).length;
+                const matchCount = similar.filter((s) => listenerFavoriteNames.includes(s)).length;
 
-                const percentage = matchCount / listenerFavorites.length;
+                const percentage = matchCount / similar.length;
 
                 return {
                     ...artist,
-                    score: percentage, // 0 → 1
+                    score: percentage,
                 };
             });
 
-            const filteredScoredArtists = scoredArtists.filter(a => a.score >= 0.6);
+            const filteredScoredArtists = scoredArtists.filter((a) => a.score >= 0.6);
             setArtists(filteredScoredArtists);
         };
 
         fetchAndSortArtists();
-    }, []);
+    }, [user?.id]);
 
 
     useEffect(() => {
@@ -123,16 +125,16 @@ export default function Artists({ navigation }) {
             activeOpacity={0.7}
         >
             <Image source={vinyl} style={artistStyles.vinyl} />
-            <Text style={artistStyles.artistName}>{item.name}({Math.round(item.score * 100)}%)</Text>
+            <Text style={[artistStyles.artistName, { fontSize: currentFontSizes.base }]}>{item.name} <Text style={[artistStyles.artistMatchPct, { fontSize: currentFontSizes.caption }]}>{Math.round(item.score * 100)}%</Text></Text>
         </TouchableOpacity>
     );
 
     return (
         <SafeAreaView style={discoverStyles.container} edges={['top']}>
-            <Text style={discoverStyles.title}>Discover Artists</Text>
+            <Text style={[discoverStyles.title, { fontSize: currentFontSizes.hero }]}>Discover Artists</Text>
             <View style={discoverStyles.searchWrap}>
                 <TextInput
-                    style={discoverStyles.searchInput}
+                    style={[discoverStyles.searchInput, { fontSize: currentFontSizes.base }]}
                     placeholder="Search artists..."
                     placeholderTextColor={DiscoverColors.white}
                     value={searchText}
@@ -160,7 +162,7 @@ export default function Artists({ navigation }) {
                             }}
                         >
                             <View style={{ backgroundColor: 'rgba(237, 236, 236, 0.4)', borderRadius: 20, padding: 14, alignItems: 'center', }}>
-                                <Text style={{ fontWeight: 1000, color: '#000000', padding: 10, fontSize: 16, textAlign: 'center' }}>
+                                <Text style={{ fontWeight: 1000, color: '#000000', padding: 10, fontSize: currentFontSizes.base, textAlign: 'center' }}>
                                     Add more favorite artists to get suggestions!
                                 </Text>
                             </View>
@@ -217,13 +219,13 @@ export default function Artists({ navigation }) {
                             pointerEvents={flipComplete ? 'box-none' : 'none'}
                         >
                             <View style={artistStyles.vinylBack}>
-                                <Text style={artistStyles.vinylBackTitle} allowFontScaling={false}>
+                                <Text style={[artistStyles.vinylBackTitle, { fontSize: currentFontSizes.title }]} allowFontScaling={false}>
                                     {selectedArtist?.name}
                                 </Text>
-                                <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
+                                <Text style={[artistStyles.vinylBackText, { fontSize: currentFontSizes.subtitle }]} allowFontScaling={false}>
                                     Bio: {selectedArtist?.bio || 'No bio available'}
                                 </Text>
-                                <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
+                                <Text style={[artistStyles.vinylBackText, { fontSize: currentFontSizes.subtitle }]} allowFontScaling={false}>
                                     Genre: {selectedArtist?.genres?.length ? selectedArtist.genres.join(', ') : 'Unknown'}
                                 </Text>
                             </View>
@@ -240,6 +242,7 @@ const artistStyles = StyleSheet.create({
     card: { flex: 1, alignItems: 'center', marginHorizontal: 4 },
     vinyl: { width: 200, height: 200 },
     artistName: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
+    artistMatchPct: { fontSize: 13, color: '#888', fontWeight: '500' },
 
     modalOverlay: {
         flex: 1,

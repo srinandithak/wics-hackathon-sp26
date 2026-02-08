@@ -1,29 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useApp } from '../contexts/AppContext';
 
 const Vinyl = () => (
   <Image source={require('../assets/images/vinyl.png')} style={styles.vinyl} />
 );
 
 export default function Welcome({ navigation }) {
+  const { currentFontSizes } = useApp();
   return (
     <View style={styles.container}>
       <Vinyl />
-      <Text style={styles.title}>Welcome</Text>
+      <Text style={[styles.appName, { fontSize: currentFontSizes.hero * 0.85 }]}>BevoBeats</Text>
       <View style={styles.buttons}>
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={() => navigation.navigate('Login')}
           activeOpacity={0.85}
         >
-          <Text style={styles.primaryButtonText}>Log in</Text>
+          <Text style={[styles.primaryButtonText, { fontSize: currentFontSizes.subtitle }]}>Log in</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={() => navigation.navigate('Onboarding')}
           activeOpacity={0.85}
         >
-          <Text style={styles.secondaryButtonText}>Sign up</Text>
+          <Text style={[styles.secondaryButtonText, { fontSize: currentFontSizes.subtitle }]}>Sign up</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -38,10 +40,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
+  appName: {
+    fontWeight: '800',
+    color: '#1a1a1a',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
   vinyl: {
     width: 200,
     height: 200,
-    marginBottom: 40,
+    marginBottom: 24,
   },
   title: {
     fontSize: 36,
