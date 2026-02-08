@@ -1,37 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Image } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
-const AnimatedVinyl = () => {
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 1500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, []);
-
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  return (
-    <Animated.Image
-      source={require('../assets/images/vinyl.png')}
-      style={[styles.vinyl, { transform: [{ rotate: spin }] }]}
-    />
-  );
-};
+const Vinyl = () => (
+  <Image source={require('../assets/images/vinyl.png')} style={styles.vinyl} />
+);
 
 export default function Welcome({ navigation }) {
   return (
     <View style={styles.container}>
-      <AnimatedVinyl />
+      <Vinyl />
       <Text style={styles.title}>Welcome</Text>
       <View style={styles.buttons}>
         <TouchableOpacity
@@ -62,8 +39,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   vinyl: {
-    width: 130,
-    height: 130,
+    width: 200,
+    height: 200,
     marginBottom: 40,
   },
   title: {

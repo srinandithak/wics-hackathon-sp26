@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Platform,
   ScrollView,
@@ -120,9 +121,11 @@ export default function Events({ navigation }) {
     }
   }, [userId]);
 
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+  useFocusEffect(
+    useCallback(() => {
+      loadEvents();
+    }, [loadEvents])
+  );
 
   const events = useMemo(() => {
     if (!searchText.trim()) return eventsRaw;

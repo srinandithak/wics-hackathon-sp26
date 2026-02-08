@@ -33,7 +33,7 @@ const AnimatedVinyl = () => {
 };
 
 export default function OnboardingScreen({ navigation }) {
-  const { signUp } = useAuth();
+  const { signUp, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -56,8 +56,6 @@ export default function OnboardingScreen({ navigation }) {
         const userId = data.user?.id;
         if (!userId) throw new Error('No user id after sign up');
 
-        const favoriteNames = favoriteArtistsInput.split(',').map((s) => s.trim()).filter(Boolean);
-        const favoriteSongs = favoriteNames.map((name) => ({ title: name, artist: name }));
         const similarArtists = isArtist === true
           ? similarArtistsInput.split(',').map((s) => s.trim()).filter(Boolean)
           : [];
@@ -67,13 +65,14 @@ export default function OnboardingScreen({ navigation }) {
           p_user_type: isArtist === true ? 'artist' : 'listener',
           p_instagram_handle: instagram.trim() || null,
           p_genres: genre ? [genre] : [],
-          p_favorite_artists: favoriteSongs,
+          p_favorite_artists: [],
           p_bio: isArtist === true ? (artistBio.trim() || null) : null,
           p_profile_image_url: null,
           p_similar_artists: similarArtists.length ? similarArtists : null,
         });
 
         if (rpcError) throw rpcError;
+        await refreshProfile(userId);
         // Auth state will update and navigator will switch to Main
       } catch (err) {
         console.error(err);
