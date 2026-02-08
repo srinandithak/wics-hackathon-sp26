@@ -12,7 +12,6 @@ import {
     ScrollView,
     StyleSheet,
     Switch,
-    Switch,
     Text,
     TextInput,
     TouchableOpacity,
@@ -502,7 +501,7 @@ useEffect(() => {
                                 onPress={() => closeSidebarAndOpenPanel('notifications')}
                             >
                                 <Ionicons name="notifications-outline" size={24} color={colors.text} />
-                                <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Notifications</Text>
+                                <ThemedText>Notifications</ThemedText>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
                             </TouchableOpacity>
 
@@ -512,7 +511,7 @@ useEffect(() => {
                                 onPress={() => closeSidebarAndOpenPanel('privacy')}
                             >
                                 <Ionicons name="lock-closed-outline" size={24} color={colors.text} />
-                                <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Privacy</Text>
+                                <ThemedText>Privacy</ThemedText>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
                             </TouchableOpacity>
 
@@ -522,7 +521,7 @@ useEffect(() => {
                                 onPress={() => closeSidebarAndOpenPanel('fontSize')}
                             >
                                 <Ionicons name="text-outline" size={24} color={colors.text} />
-                                <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Font Size</Text>
+                                <ThemedText>Font Size</ThemedText>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
                             </TouchableOpacity>
 

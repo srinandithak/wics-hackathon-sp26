@@ -1,4 +1,4 @@
-import { Text, type TextProps } from 'react-native';
+import { Text, StyleSheet, type TextProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useApp } from '../contexts/AppContext';
@@ -35,4 +35,26 @@ export function ThemedText({
     />
   );
 }
+
+
+const styles = StyleSheet.create({
+  default: {
+    fontSize: 14,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  defaultSemiBold: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#666',
+  },
+  link: {
+    textDecorationLine: 'underline',
+  },
+});
 

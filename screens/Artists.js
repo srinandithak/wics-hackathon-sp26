@@ -17,6 +17,7 @@ import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { DiscoverColors, discoverStyles } from '../styles/styles';
+import { ThemedText } from '../components/ThemedText';
 
 
 export default function Artists({ navigation }) {
@@ -131,7 +132,8 @@ export default function Artists({ navigation }) {
 
     return (
         <SafeAreaView style={discoverStyles.container} edges={['top']}>
-            <Text style={[discoverStyles.title, { fontSize: currentFontSizes.hero }]}>Discover Artists</Text>
+            <ThemedText style={[discoverStyles.title, { fontSize: currentFontSizes.hero }]}>Discover Artists</ThemedText>
+            {/* <Text style={[discoverStyles.title, { fontSize: currentFontSizes.hero }]}>Discover Artists</Text> */}
             <View style={discoverStyles.searchWrap}>
                 <TextInput
                     style={[discoverStyles.searchInput, { fontSize: currentFontSizes.base }]}
@@ -162,9 +164,9 @@ export default function Artists({ navigation }) {
                             }}
                         >
                             <View style={{ backgroundColor: 'rgba(237, 236, 236, 0.4)', borderRadius: 20, padding: 14, alignItems: 'center', }}>
-                                <Text style={{ fontWeight: 1000, color: '#000000', padding: 10, fontSize: currentFontSizes.base, textAlign: 'center' }}>
+                                <ThemedText style={{ fontWeight: 1000, color: '#000000', padding: 10, fontSize: currentFontSizes.base, textAlign: 'center' }}>
                                     Add more favorite artists to get suggestions!
-                                </Text>
+                                </ThemedText>
                             </View>
 
                         </View>
@@ -219,15 +221,15 @@ export default function Artists({ navigation }) {
                             pointerEvents={flipComplete ? 'box-none' : 'none'}
                         >
                             <View style={artistStyles.vinylBack}>
-                                <Text style={[artistStyles.vinylBackTitle, { fontSize: currentFontSizes.title }]} allowFontScaling={false}>
+                                <ThemedText style={[artistStyles.vinylBackTitle, { fontSize: currentFontSizes.title }]} allowFontScaling={false}>
                                     {selectedArtist?.name}
-                                </Text>
-                                <Text style={[artistStyles.vinylBackText, { fontSize: currentFontSizes.subtitle }]} allowFontScaling={false}>
+                                </ThemedText>
+                                <ThemedText style={[artistStyles.vinylBackText, { fontSize: currentFontSizes.subtitle }]} allowFontScaling={false}>
                                     Bio: {selectedArtist?.bio || 'No bio available'}
-                                </Text>
-                                <Text style={[artistStyles.vinylBackText, { fontSize: currentFontSizes.subtitle }]} allowFontScaling={false}>
+                                </ThemedText>
+                                <ThemedText style={[artistStyles.vinylBackText, { fontSize: currentFontSizes.subtitle }]} allowFontScaling={false}>
                                     Genre: {selectedArtist?.genres?.length ? selectedArtist.genres.join(', ') : 'Unknown'}
-                                </Text>
+                                </ThemedText>
                             </View>
                         </View>
                     </View>

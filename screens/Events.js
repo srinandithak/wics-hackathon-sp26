@@ -24,6 +24,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { eventRowToUI } from '../lib/eventUtils';
 import { searchGoogleEvents, serpEventToOurEvent } from '../lib/serpApi';
+import { ThemedText } from '../components/ThemedText';
 
 const cardShadow = Platform.select({
   ios: {
@@ -226,7 +227,7 @@ export default function Events({ navigation }) {
   return (
     <SafeAreaView style={discoverStyles.container} edges={['top']}>
       <View style={eventStyles.titleWrap}>
-        <Text style={[discoverStyles.title, { fontSize: currentFontSizes.hero }]}>Discover Events</Text>
+        <ThemedText style={[discoverStyles.title, { fontSize: currentFontSizes.hero }]}>Discover Events</ThemedText>
         {isArtist && (
           <View style={eventStyles.titleActions}>
             <TouchableOpacity
@@ -234,7 +235,7 @@ export default function Events({ navigation }) {
               onPress={() => setGoogleModalVisible(true)}
               activeOpacity={0.85}
             >
-              <Text style={[eventStyles.fromGoogleButtonText, { color: colors.tint, fontSize: currentFontSizes.caption }]}>From Google</Text>
+              <ThemedText style={[eventStyles.fromGoogleButtonText, { color: colors.tint, fontSize: currentFontSizes.caption }]}>From Google</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[eventStyles.plusButton, { backgroundColor: colors.tint }]}
@@ -273,18 +274,18 @@ export default function Events({ navigation }) {
           return (
             <View key={ev.id} style={[eventStyles.card, { backgroundColor: cardBg }, cardShadow]}>
               <View style={[eventStyles.dateBadge, { backgroundColor: colors.tint }]}>
-                <Text style={[eventStyles.dateDay, { fontSize: currentFontSizes.large }]}>{ev.day}</Text>
-                <Text style={[eventStyles.dateMonth, { fontSize: currentFontSizes.caption }]}>{ev.month}</Text>
+                <ThemedText style={[eventStyles.dateDay, { fontSize: currentFontSizes.large }]}>{ev.day}</ThemedText>
+                <ThemedText style={[eventStyles.dateMonth, { fontSize: currentFontSizes.caption }]}>{ev.month}</ThemedText>
               </View>
               <View style={eventStyles.cardBody}>
-                <Text style={[eventStyles.cardTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{ev.title}</Text>
+                <ThemedText style={[eventStyles.cardTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{ev.title}</ThemedText>
                 <View style={eventStyles.metaRow}>
                   <Ionicons name="time-outline" size={14} color={colors.icon} />
-                  <Text style={[eventStyles.cardMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}> {ev.time}</Text>
+                  <ThemedText style={[eventStyles.cardMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}> {ev.time}</ThemedText>
                 </View>
                 <View style={eventStyles.metaRow}>
                   <Ionicons name="location-outline" size={14} color={colors.icon} />
-                  <Text style={[eventStyles.cardLocation, { color: colors.icon, fontSize: currentFontSizes.caption }]}> {ev.location}</Text>
+                  <ThemedText style={[eventStyles.cardLocation, { color: colors.icon, fontSize: currentFontSizes.caption }]}> {ev.location}</ThemedText>
                 </View>
                 <View style={[eventStyles.friendsRow, { backgroundColor: friendCount > 0 ? colors.tint + '18' : colors.icon + '18' }]}>
                   <Ionicons
@@ -292,17 +293,17 @@ export default function Events({ navigation }) {
                     size={14}
                     color={friendCount > 0 ? colors.tint : colors.icon}
                   />
-                  <Text
+                  <ThemedText
                     style={[
                       eventStyles.friendsLabel,
                       { color: friendCount > 0 ? colors.tint : colors.icon, fontSize: currentFontSizes.caption },
                     ]}
                   >
                     {friendsLabel}
-                  </Text>
+                  </ThemedText>
                   {friendCount > 0 && (
                     <View style={[eventStyles.friendCountBadge, { backgroundColor: colors.tint }]}>
-                      <Text style={[eventStyles.friendCountText, { fontSize: currentFontSizes.caption }]}>{friendCount}</Text>
+                      <ThemedText style={[eventStyles.friendCountText, { fontSize: currentFontSizes.caption }]}>{friendCount}</ThemedText>
                     </View>
                   )}
                 </View>
@@ -317,17 +318,17 @@ export default function Events({ navigation }) {
                   {imGoing ? (
                     <>
                       <Ionicons name="checkmark-circle" size={18} color="#fff" />
-                      <Text style={[eventStyles.goingButtonTextActive, { fontSize: currentFontSizes.base }]}>You're going</Text>
+                      <ThemedText style={[eventStyles.goingButtonTextActive, { fontSize: currentFontSizes.base }]}>You're going</ThemedText>
                     </>
                   ) : (
                     <>
                       <Ionicons name="add-circle-outline" size={18} color={colors.tint} />
-                      <Text style={[eventStyles.goingButtonText, { color: colors.tint, fontSize: currentFontSizes.base }]}>Going</Text>
+                      <ThemedText style={[eventStyles.goingButtonText, { color: colors.tint, fontSize: currentFontSizes.base }]}>Going</ThemedText>
                     </>
                   )}
                 </TouchableOpacity>
                 <View style={[eventStyles.pill, { backgroundColor: colors.tint + '22' }]}>
-                  <Text style={[eventStyles.pillText, { color: colors.tint, fontSize: currentFontSizes.caption }]}>{ev.venueType}</Text>
+                  <ThemedText style={[eventStyles.pillText, { color: colors.tint, fontSize: currentFontSizes.caption }]}>{ev.venueType}</ThemedText>
                 </View>
               </View>
             </View>
@@ -340,13 +341,13 @@ export default function Events({ navigation }) {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={eventStyles.modalOverlay}>
           <View style={[eventStyles.modalContent, { backgroundColor: colors.background }]}>
             <View style={eventStyles.modalHeader}>
-              <Text style={[eventStyles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>Create event</Text>
+              <ThemedText style={[eventStyles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>Create event</ThemedText>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)} hitSlop={12}>
                 <Ionicons name="close" size={28} color={colors.icon} />
               </TouchableOpacity>
             </View>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={eventStyles.modalScroll}>
-              <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Title *</Text>
+              <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Title *</ThemedText>
               <TextInput
                 style={[eventStyles.modalInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
                 value={createTitle}
@@ -354,7 +355,7 @@ export default function Events({ navigation }) {
                 placeholder="Event name"
                 placeholderTextColor={colors.icon}
               />
-              <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Description</Text>
+              <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Description</ThemedText>
               <TextInput
                 style={[eventStyles.modalInput, eventStyles.modalInputArea, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
                 value={createDescription}
@@ -363,7 +364,7 @@ export default function Events({ navigation }) {
                 placeholderTextColor={colors.icon}
                 multiline
               />
-              <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Location *</Text>
+              <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Location *</ThemedText>
               <TextInput
                 style={[eventStyles.modalInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
                 value={createLocation}
@@ -371,7 +372,7 @@ export default function Events({ navigation }) {
                 placeholder="Address or venue"
                 placeholderTextColor={colors.icon}
               />
-              <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Venue type</Text>
+              <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Venue type</ThemedText>
               <TextInput
                 style={[eventStyles.modalInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
                 value={createVenueType}
@@ -379,7 +380,7 @@ export default function Events({ navigation }) {
                 placeholder="e.g. venue, house party, pop-up"
                 placeholderTextColor={colors.icon}
               />
-              <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Date * (YYYY-MM-DD)</Text>
+              <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Date * (YYYY-MM-DD)</ThemedText>
               <TextInput
                 style={[eventStyles.modalInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
                 value={createDate}
@@ -387,7 +388,7 @@ export default function Events({ navigation }) {
                 placeholder="2026-03-15"
                 placeholderTextColor={colors.icon}
               />
-              <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Time * (e.g. 8:00 PM or 20:00)</Text>
+              <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Time * (e.g. 8:00 PM or 20:00)</ThemedText>
               <TextInput
                 style={[eventStyles.modalInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
                 value={createTime}
@@ -415,12 +416,12 @@ export default function Events({ navigation }) {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={eventStyles.modalOverlay}>
           <View style={[eventStyles.modalContent, { backgroundColor: colors.background }]}>
             <View style={eventStyles.modalHeader}>
-              <Text style={[eventStyles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>Add from Google</Text>
+              <ThemedText style={[eventStyles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>Add from Google</ThemedText>
               <TouchableOpacity onPress={() => { setGoogleModalVisible(false); setGoogleResults([]); setGoogleQuery(''); }} hitSlop={12}>
                 <Ionicons name="close" size={28} color={colors.icon} />
               </TouchableOpacity>
             </View>
-            <Text style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Search for events (e.g. "concerts Austin" or "events this weekend")</Text>
+            <ThemedText style={[eventStyles.modalLabel, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Search for events (e.g. "concerts Austin" or "events this weekend")</ThemedText>
             <View style={eventStyles.googleSearchRow}>
               <TextInput
                 style={[eventStyles.modalInput, eventStyles.googleSearchInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', fontSize: currentFontSizes.base }]}
@@ -450,9 +451,9 @@ export default function Events({ navigation }) {
                 const when = ev.date?.when || ev.date?.start_date || '';
                 return (
                   <View key={key} style={[eventStyles.googleResultCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
-                    <Text style={[eventStyles.googleResultTitle, { color: colors.text, fontSize: currentFontSizes.base }]} numberOfLines={2}>{ev.title}</Text>
-                    {venue ? <Text style={[eventStyles.googleResultMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]} numberOfLines={1}>{venue}</Text> : null}
-                    {when ? <Text style={[eventStyles.googleResultMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]} numberOfLines={1}>{when}</Text> : null}
+                    <ThemedText style={[eventStyles.googleResultTitle, { color: colors.text, fontSize: currentFontSizes.base }]} numberOfLines={2}>{ev.title}</ThemedText>
+                    {venue ? <ThemedText style={[eventStyles.googleResultMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]} numberOfLines={1}>{venue}</ThemedText> : null}
+                    {when ? <ThemedText style={[eventStyles.googleResultMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]} numberOfLines={1}>{when}</ThemedText> : null}
                     <TouchableOpacity
                       style={[eventStyles.googleResultAddBtn, { backgroundColor: colors.tint }]}
                       onPress={() => handleAddGoogleEvent(ev)}

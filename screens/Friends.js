@@ -18,6 +18,7 @@ import { useApp } from '../contexts/AppContext';
 import { discoverStyles } from '../styles/styles';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { ThemedText } from '@/components/themed-text';
 
 const cardShadow = Platform.select({
   ios: {
@@ -149,7 +150,7 @@ export default function Friends({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16, fontSize: currentFontSizes.hero }]}>Friends</Text>
+      <ThemedText style={[discoverStyles.title, { color: colors.text, marginBottom: 16, fontSize: currentFontSizes.hero }]}>Friends</ThemedText>
 
       <View style={[styles.tabRow, { borderBottomColor: colors.icon + '33' }]}>
         <TouchableOpacity
@@ -157,18 +158,18 @@ export default function Friends({ navigation }) {
           style={[styles.tab, activeTab === 'friends' && [styles.tabActive, { borderBottomColor: colors.tint }]]}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, { color: activeTab === 'friends' ? colors.tint : colors.icon, fontSize: currentFontSizes.base }, activeTab === 'friends' && styles.tabTextActive]}>
+          <ThemedText style={[styles.tabText, { color: activeTab === 'friends' ? colors.tint : colors.icon, fontSize: currentFontSizes.base }, activeTab === 'friends' && styles.tabTextActive]}>
             Friends
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setActiveTab('suggested')}
           style={[styles.tab, activeTab === 'suggested' && [styles.tabActive, { borderBottomColor: colors.tint }]]}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, { color: activeTab === 'suggested' ? colors.tint : colors.icon, fontSize: currentFontSizes.base }, activeTab === 'suggested' && styles.tabTextActive]}>
+          <ThemedText style={[styles.tabText, { color: activeTab === 'suggested' ? colors.tint : colors.icon, fontSize: currentFontSizes.base }, activeTab === 'suggested' && styles.tabTextActive]}>
             Suggested
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -193,12 +194,12 @@ export default function Friends({ navigation }) {
             >
               <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
               <View style={styles.rowBody}>
-                <Text style={[styles.rowTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{friend.name}</Text>
-                <Text style={[styles.rowMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{friend.handle}</Text>
+                <ThemedText style={[styles.rowTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{friend.name}</ThemedText>
+                <ThemedText style={[styles.rowMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{friend.handle}</ThemedText>
                 {friend.events.length > 0 && (
-                  <Text style={[styles.rowHint, { color: colors.tint, fontSize: currentFontSizes.caption }]}>
+                  <ThemedText style={[styles.rowHint, { color: colors.tint, fontSize: currentFontSizes.caption }]}>
                     {friend.events.length} event{friend.events.length !== 1 ? 's' : ''} · Tap to see
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
               <Ionicons name="chevron-forward" size={22} color={colors.icon} />
@@ -210,25 +211,25 @@ export default function Friends({ navigation }) {
             <View key={person.id} style={[styles.row, { backgroundColor: cardBg }, cardShadow]}>
               <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
               <View style={styles.rowBody}>
-                <Text style={[styles.rowTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{person.name}</Text>
-                <Text style={[styles.rowMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{person.handle}</Text>
-                <Text style={[styles.rowHint, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{person.hint}</Text>
+                <ThemedText style={[styles.rowTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{person.name}</ThemedText>
+                <ThemedText style={[styles.rowMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{person.handle}</ThemedText>
+                <ThemedText style={[styles.rowHint, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{person.hint}</ThemedText>
               </View>
               <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: colors.tint }]}
                 onPress={() => handleAddFriend(person)}
                 activeOpacity={0.85}
               >
-                <Text style={[styles.addButtonText, { fontSize: currentFontSizes.base }]}>Add</Text>
+                <ThemedText style={[styles.addButtonText, { fontSize: currentFontSizes.base }]}>Add</ThemedText>
               </TouchableOpacity>
             </View>
           ))}
 
         {activeTab === 'friends' && friends.length === 0 && (
-          <Text style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>No friends yet. Check Suggested to add people with similar taste.</Text>
+          <ThemedText style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>No friends yet. Check Suggested to add people with similar taste.</ThemedText>
         )}
         {activeTab === 'suggested' && suggested.length === 0 && (
-          <Text style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>No more suggestions right now.</Text>
+          <ThemedText style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>No more suggestions right now.</ThemedText>
         )}
         </>
         )}
@@ -243,28 +244,28 @@ export default function Friends({ navigation }) {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setSelectedFriend(null)}>
           <Pressable style={[styles.modalContent, { backgroundColor: colors.background }]} onPress={(e) => e.stopPropagation()}>
-            <View style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>
+            <ThemedText style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
+            <ThemedText style={styles.modalHeader}>
+              <ThemedText style={[styles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>
                 {selectedFriend?.name}'s events
-              </Text>
+              </ThemedText>
               <TouchableOpacity onPress={() => setSelectedFriend(null)} hitSlop={12}>
                 <Ionicons name="close" size={28} color={colors.icon} />
               </TouchableOpacity>
-            </View>
+            </ThemedText>
             <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
               {selectedFriend?.events?.length ? (
                 selectedFriend.events.map((ev) => (
                   <View key={ev.id} style={[styles.eventRow, { borderColor: colors.icon + '33' }]}>
-                    <Text style={[styles.eventTitle, { color: colors.text, fontSize: currentFontSizes.base }]}>{ev.title}</Text>
-                    <Text style={[styles.eventMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{ev.date}</Text>
-                    <Text style={[styles.eventLocation, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{ev.location}</Text>
+                    <ThemedText style={[styles.eventTitle, { color: colors.text, fontSize: currentFontSizes.base }]}>{ev.title}</ThemedText>
+                    <ThemedText style={[styles.eventMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{ev.date}</ThemedText>
+                    <ThemedText style={[styles.eventLocation, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{ev.location}</ThemedText>
                   </View>
                 ))
               ) : (
-                <Text style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>
+                <ThemedText style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>
                   {selectedFriend?.name} isn't going to any events yet.
-                </Text>
+                </ThemedText>
               )}
             </ScrollView>
           </Pressable>
