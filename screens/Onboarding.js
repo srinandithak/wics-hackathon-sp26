@@ -46,9 +46,9 @@ export default function OnboardingScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Step 8 = "Making your profile…" (after sign up + profile insert)
+  // Step 9 = "Making your profile…" (after sign up + profile insert)
   useEffect(() => {
-    if (step !== 8) return;
+    if (step !== 9) return;
     const run = async () => {
       setLoading(true);
       try {
@@ -93,7 +93,7 @@ export default function OnboardingScreen({ navigation }) {
     />
   );
 
-  if (step === 8) {
+  if (step === 9) {
     return (
       <View style={styles.containerCenter}>
         <AnimatedVinyl />
@@ -182,7 +182,7 @@ export default function OnboardingScreen({ navigation }) {
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
-              <Text style={styles.label}>Enter your Instagram (optional)</Text>
+              <Text style={styles.label}>Enter your Instagram</Text>
               <TextInput
                 style={styles.input}
                 value={instagram}
@@ -190,12 +190,36 @@ export default function OnboardingScreen({ navigation }) {
                 returnKeyType="next"
                 onSubmitEditing={() => setStep(3)}
               />
+              <TouchableOpacity style={styles.spotifySkipWrap} onPress={() => setStep(3)} activeOpacity={0.7}>
+                <Text style={styles.spotifySkip}>Skip</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Spotify integration (dummy) – only after Instagram step */}
+        {step >= 3 && (
+          <View style={styles.row}>
+            {vinylIcon}
+            <View style={styles.block}>
+              <Text style={styles.label}>Connect your music</Text>
+              <TouchableOpacity
+                style={styles.spotifyButton}
+                onPress={() => {}}
+                activeOpacity={0.8}
+              >
+                <Image source={require('../assets/images/spotify.png')} style={styles.spotifyLogoImage} resizeMode="contain" />
+                <Text style={styles.spotifyButtonText}>Integrate with Spotify</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.spotifySkipWrap} onPress={() => setStep(4)} activeOpacity={0.7}>
+                <Text style={styles.spotifySkip}>Skip</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
 
         {/* Genre (required) */}
-        {step >= 3 && (
+        {step >= 4 && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
@@ -205,7 +229,7 @@ export default function OnboardingScreen({ navigation }) {
                   selectedValue={genre}
                   onValueChange={(value) => {
                     setGenre(value);
-                    if (value) setStep(4);
+                    if (value) setStep(5);
                   }}>
                   <Picker.Item label="Select a genre…" value="" />
                   <Picker.Item label="Pop" value="Pop" />
@@ -222,7 +246,7 @@ export default function OnboardingScreen({ navigation }) {
         )}
 
         {/* Favorite artists (required) – comma-separated, multiple */}
-        {step >= 4 && (
+        {step >= 5 && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
@@ -243,7 +267,7 @@ export default function OnboardingScreen({ navigation }) {
                     Alert.alert('Required', 'Enter at least one favorite artist.');
                     return;
                   }
-                  setStep(isArtist ? 5 : 7);
+                  setStep(isArtist ? 6 : 8);
                 }}
                 disabled={loading}
               >
@@ -254,7 +278,7 @@ export default function OnboardingScreen({ navigation }) {
         )}
 
         {/* Similar artists (artists only) */}
-        {step === 5 && isArtist && (
+        {step === 6 && isArtist && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
@@ -270,7 +294,7 @@ export default function OnboardingScreen({ navigation }) {
               />
               <TouchableOpacity
                 style={styles.createButton}
-                onPress={() => setStep(6)}
+                onPress={() => setStep(7)}
                 disabled={loading}
               >
                 <Text style={styles.createButtonText}>Continue</Text>
@@ -280,7 +304,7 @@ export default function OnboardingScreen({ navigation }) {
         )}
 
         {/* Bio + genre for artists only */}
-        {step === 6 && isArtist && (
+        {step === 7 && isArtist && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
@@ -298,7 +322,7 @@ export default function OnboardingScreen({ navigation }) {
               />
               <TouchableOpacity
                 style={styles.createButton}
-                onPress={() => setStep(7)}
+                onPress={() => setStep(8)}
                 disabled={loading}
               >
                 <Text style={styles.createButtonText}>Continue</Text>
@@ -308,7 +332,7 @@ export default function OnboardingScreen({ navigation }) {
         )}
 
         {/* Create account: email + password */}
-        {step >= 7 && step < 8 && (
+        {step >= 8 && step < 9 && (
           <View style={styles.row}>
             {vinylIcon}
             <View style={styles.block}>
@@ -340,7 +364,7 @@ export default function OnboardingScreen({ navigation }) {
                     Alert.alert('Invalid input', 'Use a valid email and a password of at least 6 characters.');
                     return;
                   }
-                  setStep(8);
+                  setStep(9);
                 }}
                 disabled={loading}
               >
@@ -431,6 +455,34 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 10,
+  },
+  spotifyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    backgroundColor: '#1a1a1a',
+    alignSelf: 'flex-start',
+    gap: 10,
+  },
+  spotifyLogoImage: {
+    width: 24,
+    height: 24,
+  },
+  spotifyButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  spotifySkipWrap: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  spotifySkip: {
+    fontSize: 15,
+    textDecorationLine: 'underline',
+    color: '#1a1a1a',
   },
   inputMultiline: {
     minHeight: 80,
