@@ -20,9 +20,9 @@ export function AppProvider({ children }) {
     ? {
         id: profile.id,
         username: profile.name ?? 'Your Name',
-        instagramId: profile.instagram_handle ?? 'username',
+        instagramId: profile.instagram_handle ?? '',
       }
-    : { id: null, username: 'Your Name', instagramId: 'username' };
+    : { id: null, username: 'Your Name', instagramId: '' };
 
   const updateUser = async (updates) => {
     if (!user.id) return;
