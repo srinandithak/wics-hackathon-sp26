@@ -14,10 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login({ navigation }) {
   const { signIn } = useAuth();
+  const { currentFontSizes } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,18 +51,18 @@ export default function Login({ navigation }) {
         style={styles.keyboardView}
       >
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Log in</Text>
-          <Text style={[styles.hint, { color: colors.icon }]}>
+          <Text style={[styles.title, { color: colors.text, fontSize: currentFontSizes.title }]}>Log in</Text>
+          <Text style={[styles.hint, { color: colors.icon, fontSize: currentFontSizes.base }]}>
             Use your @my.utexas.edu email
           </Text>
         </View>
 
         <View style={styles.form}>
-          <Text style={[styles.label, styles.labelFirst, { color: colors.icon }]}>Email</Text>
+          <Text style={[styles.label, styles.labelFirst, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Email</Text>
           <TextInput
             style={[
               styles.input,
-              { color: colors.text, backgroundColor: inputBg, borderColor: 'transparent' },
+              { color: colors.text, backgroundColor: inputBg, borderColor: 'transparent', fontSize: currentFontSizes.base },
             ]}
             placeholder="you@my.utexas.edu"
             placeholderTextColor={colors.icon}
@@ -70,11 +72,11 @@ export default function Login({ navigation }) {
             onChangeText={setEmail}
             editable={!loading}
           />
-          <Text style={[styles.label, { color: colors.icon }]}>Password</Text>
+          <Text style={[styles.label, { color: colors.icon, fontSize: currentFontSizes.caption }]}>Password</Text>
           <TextInput
             style={[
               styles.input,
-              { color: colors.text, backgroundColor: inputBg, borderColor: 'transparent' },
+              { color: colors.text, backgroundColor: inputBg, borderColor: 'transparent', fontSize: currentFontSizes.base },
             ]}
             placeholder="••••••••"
             placeholderTextColor={colors.icon}
@@ -93,14 +95,14 @@ export default function Login({ navigation }) {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Log in</Text>
+              <Text style={[styles.buttonText, { fontSize: currentFontSizes.subtitle }]}>Log in</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={20} color={colors.tint} />
-          <Text style={[styles.backText, { color: colors.tint }]}>Back</Text>
+          <Text style={[styles.backText, { color: colors.tint, fontSize: currentFontSizes.base }]}>Back</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>

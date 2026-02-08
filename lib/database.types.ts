@@ -16,14 +16,18 @@ export interface Profile {
   id: string;
   name: string;
   user_type: UserType;
-  favorite_artists: FavoriteSong[] | null;
+  /** Favorite artist names (strings) for Discover Artists matching only */
+  favorite_artist_names?: string[] | null;
+  /** My Songs: each element is "Title|||Artist" */
+  posts?: string[] | null;
   instagram_handle: string | null;
   bio: string | null;
   profile_image_url: string | null;
   similar_artists: string[] | null;
   genres: string[] | null;
-  posts?: string[] | null;  // optional: DB default is []
   created_at: string;
+  /** @deprecated use favorite_artist_names + posts instead */
+  favorite_artists?: FavoriteSong[] | null;
 }
 
 export interface Event {

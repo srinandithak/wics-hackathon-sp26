@@ -3,24 +3,29 @@ import React, { useEffect, useState } from 'react';
 import {
     Alert,
     Animated,
+    BackHandler,
+    InteractionManager,
     KeyboardAvoidingView,
     Modal,
     Platform,
+    Pressable,
     ScrollView,
     StyleSheet,
+    Switch,
     Switch,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../components/themed-text';
 import { Colors } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { supabase } from '../lib/supabase';
+import { postsToSongs, songsToPosts } from '../lib/mySongsUtils';
 
 const cardShadow = Platform.select({
     ios: {
@@ -40,7 +45,8 @@ export default function Profile({ navigation }) {
     const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
     const sectionBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
 
-const { user, updateUser, logout, currentFontSizes, isDyslexicMode, toggleDyslexicMode } = useApp();
+    const insets = useSafeAreaInsets();
+const { user, updateUser, logout, currentFontSizes, isDyslexicMode, toggleDyslexicMode, settings, updateNotifications, updatePrivacy, updateFontSize } = useApp();
 
 // Add this right after to see the values
 useEffect(() => {
@@ -63,6 +69,7 @@ useEffect(() => {
     const [tempSimilarArtists, setTempSimilarArtists] = useState((profile?.similar_artists ?? []).join(', '));
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const [sidebarAnim] = useState(new Animated.Value(-300));
+    const [settingsPanel, setSettingsPanel] = useState(null);
 
     // --- Songs state ---
     const [songInput, setSongInput] = useState('');
@@ -76,13 +83,13 @@ useEffect(() => {
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('favorite_artists')
+                .select('posts')
                 .eq('id', user.id)
                 .single();
 
             if (error) throw error;
 
-            setUserSongs(profile.favorite_artists || []);
+            setUserSongs(postsToSongs(profile?.posts || []));
         } catch (err) {
             console.error(err);
             Alert.alert('Error fetching songs', err.message || 'Try again');
@@ -121,7 +128,7 @@ useEffect(() => {
 
             const { error } = await supabase
                 .from('profiles')
-                .update({ favorite_artists: newSongs })
+                .update({ posts: songsToPosts(newSongs) })
                 .eq('id', user.id);
 
             if (error) throw error;
@@ -145,7 +152,7 @@ useEffect(() => {
         try {
             const { error } = await supabase
                 .from('profiles')
-                .update({ favorite_artists: updatedSongs })
+                .update({ posts: songsToPosts(updatedSongs) })
                 .eq('id', user.id);
 
             if (error) throw error;
@@ -207,6 +214,32 @@ useEffect(() => {
         }).start(() => setSidebarVisible(false));
     };
 
+    const closeSidebarAndOpenPanel = (panel) => {
+        Animated.timing(sidebarAnim, {
+            toValue: -300,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(() => {
+            setSidebarVisible(false);
+            setSettingsPanel(panel);
+        });
+    };
+
+    const closeSettingsPanel = () => {
+        InteractionManager.runAfterInteractions(() => {
+            setSettingsPanel(null);
+        });
+    };
+
+    useEffect(() => {
+        if (settingsPanel === null) return;
+        const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+            closeSettingsPanel();
+            return true;
+        });
+        return () => sub.remove();
+    }, [settingsPanel]);
+
     const handleLogout = () => {
         Alert.alert(
             'Log Out',
@@ -245,7 +278,7 @@ useEffect(() => {
                 <ScrollView contentContainerStyle={{ padding: 20 }}>
                     {/* Profile Card */}
                     <View style={[styles.profileCard, { backgroundColor: cardBg }, cardShadow]}>
-                        <View style={[styles.avatarWrap, { backgroundColor: colors.tint + '25' }]}>
+                        <View style={styles.avatarWrap}>
                             <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
                             <TouchableOpacity style={[styles.editAvatarBtn, { backgroundColor: colors.tint }]}>
                                 <Ionicons name="camera" size={16} color="#fff" />
@@ -463,19 +496,31 @@ useEffect(() => {
                         </View>
 
                         <View style={styles.sidebarContent}>
-                            <TouchableOpacity style={[styles.settingsItem, { borderBottomColor: colors.icon + '20' }]} activeOpacity={0.7}>
+                            <TouchableOpacity
+                                style={[styles.settingsItem, { borderBottomColor: colors.icon + '20' }]}
+                                activeOpacity={0.7}
+                                onPress={() => closeSidebarAndOpenPanel('notifications')}
+                            >
                                 <Ionicons name="notifications-outline" size={24} color={colors.text} />
                                 <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Notifications</Text>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={[styles.settingsItem, { borderBottomColor: colors.icon + '20' }]} activeOpacity={0.7}>
+                            <TouchableOpacity
+                                style={[styles.settingsItem, { borderBottomColor: colors.icon + '20' }]}
+                                activeOpacity={0.7}
+                                onPress={() => closeSidebarAndOpenPanel('privacy')}
+                            >
                                 <Ionicons name="lock-closed-outline" size={24} color={colors.text} />
                                 <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Privacy</Text>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]} activeOpacity={0.7}>
+                            <TouchableOpacity
+                                style={[styles.settingsItem, { borderBottomWidth: 0 }]}
+                                activeOpacity={0.7}
+                                onPress={() => closeSidebarAndOpenPanel('fontSize')}
+                            >
                                 <Ionicons name="text-outline" size={24} color={colors.text} />
                                 <Text style={[styles.settingsItemText, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>Font Size</Text>
                                 <Ionicons name="chevron-forward" size={20} color={colors.icon} />
@@ -521,6 +566,91 @@ useEffect(() => {
                         </View>
                     </Animated.View>
                 </View>
+            </Modal>
+
+            {/* Settings detail modal: Notifications / Privacy / Font Size */}
+            <Modal visible={settingsPanel !== null} animationType="slide" transparent={false} onRequestClose={closeSettingsPanel} statusBarTranslucent>
+                <SafeAreaView style={[styles.settingsPanelOverlay, { backgroundColor: colors.background }]} edges={['top']}>
+                    <View style={[styles.settingsPanelHeader, { borderBottomColor: colors.icon + '20', backgroundColor: colors.background, paddingTop: Math.max(insets.top, 12) + 16 }, Platform.OS === 'android' && { elevation: 4 }]}>
+                        <TouchableOpacity
+                            onPress={closeSettingsPanel}
+                            style={styles.settingsPanelBackBtn}
+                            activeOpacity={0.7}
+                            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+                            accessible={true}
+                            accessibilityRole="button"
+                            accessibilityLabel="Go back"
+                        >
+                            <Ionicons name="arrow-back" size={28} color={colors.text} />
+                        </TouchableOpacity>
+                        <Text style={[styles.settingsPanelTitle, { color: colors.text, fontSize: 20 }]} numberOfLines={1}>
+                            {settingsPanel === 'notifications' && 'Notifications'}
+                            {settingsPanel === 'privacy' && 'Privacy'}
+                            {settingsPanel === 'fontSize' && 'Font Size'}
+                        </Text>
+                        <View style={{ width: 28 }} />
+                    </View>
+                    <ScrollView style={styles.settingsPanelScroll} contentContainerStyle={styles.settingsPanelContent} keyboardShouldPersistTaps="handled" nestedScrollEnabled={false}>
+                        {settingsPanel === 'notifications' && settings?.notifications && (
+                            <>
+                                <View style={[styles.settingsRow, { borderBottomColor: colors.icon + '20' }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Push notifications</Text>
+                                    <Switch value={settings.notifications.pushEnabled} onValueChange={(v) => updateNotifications({ pushEnabled: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                                <View style={[styles.settingsRow, { borderBottomColor: colors.icon + '20' }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Email notifications</Text>
+                                    <Switch value={settings.notifications.emailEnabled} onValueChange={(v) => updateNotifications({ emailEnabled: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                                <View style={[styles.settingsRow, { borderBottomColor: colors.icon + '20' }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Event reminders</Text>
+                                    <Switch value={settings.notifications.eventReminders} onValueChange={(v) => updateNotifications({ eventReminders: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                                <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>New followers</Text>
+                                    <Switch value={settings.notifications.newFollowers} onValueChange={(v) => updateNotifications({ newFollowers: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                            </>
+                        )}
+                        {settingsPanel === 'privacy' && settings?.privacy && (
+                            <>
+                                <View style={[styles.settingsRow, { borderBottomColor: colors.icon + '20' }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Public profile</Text>
+                                    <Switch value={settings.privacy.profilePublic} onValueChange={(v) => updatePrivacy({ profilePublic: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                                <View style={[styles.settingsRow, { borderBottomColor: colors.icon + '20' }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Show email</Text>
+                                    <Switch value={settings.privacy.showEmail} onValueChange={(v) => updatePrivacy({ showEmail: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                                <View style={[styles.settingsRow, { borderBottomColor: colors.icon + '20' }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Allow messages</Text>
+                                    <Switch value={settings.privacy.allowMessages} onValueChange={(v) => updatePrivacy({ allowMessages: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                                <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
+                                    <Text style={[styles.settingsRowLabel, { color: colors.text, fontSize: currentFontSizes.base }]}>Show location</Text>
+                                    <Switch value={settings.privacy.showLocation} onValueChange={(v) => updatePrivacy({ showLocation: v })} trackColor={{ false: colors.icon + '40', true: colors.tint }} thumbColor="#fff" />
+                                </View>
+                            </>
+                        )}
+                        {settingsPanel === 'fontSize' && (
+                            <View style={styles.fontSizeOptions}>
+                                {['small', 'medium', 'large'].map((size) => (
+                                    <TouchableOpacity
+                                        key={size}
+                                        style={[styles.fontSizeOption, { backgroundColor: settings?.fontSize === size ? colors.tint + '25' : sectionBg, borderColor: settings?.fontSize === size ? colors.tint : colors.icon + '30' }]}
+                                        onPress={() => updateFontSize(size)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[styles.fontSizeOptionText, { color: colors.text, fontSize: currentFontSizes.base }]}>
+                                            {size === 'small' && 'Small'}
+                                            {size === 'medium' && 'Medium'}
+                                            {size === 'large' && 'Large'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </ScrollView>
+                </SafeAreaView>
             </Modal>
         </SafeAreaView>
     );
@@ -589,5 +719,16 @@ const styles = StyleSheet.create({
     sidebarTitle: { fontWeight: '800' },
     sidebarContent: { flex: 1 },
     settingsItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 18, borderBottomWidth: 1, gap: 16 },
-    settingsItemText: { flex: 1, fontWeight: '600' }
+    settingsItemText: { flex: 1, fontWeight: '600' },
+    settingsPanelOverlay: { flex: 1 },
+    settingsPanelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 16, borderBottomWidth: 1, zIndex: 10 },
+    settingsPanelBackBtn: { padding: 12, margin: -12, minWidth: 48, minHeight: 48, justifyContent: 'center', alignItems: 'center' },
+    settingsPanelTitle: { fontWeight: '800' },
+    settingsPanelScroll: { flex: 1 },
+    settingsPanelContent: { padding: 20, paddingBottom: 40 },
+    settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1 },
+    settingsRowLabel: { fontWeight: '600', flex: 1 },
+    fontSizeOptions: { gap: 12 },
+    fontSizeOption: { paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12, borderWidth: 2 },
+    fontSizeOptionText: { fontWeight: '600' },
 });

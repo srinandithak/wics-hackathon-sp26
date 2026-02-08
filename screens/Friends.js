@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+import { useApp } from '../contexts/AppContext';
 import { discoverStyles } from '../styles/styles';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -43,6 +44,7 @@ export default function Friends({ navigation }) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
+  const { currentFontSizes } = useApp();
   const { session } = useAuth();
   const userId = session?.user?.id;
   const [activeTab, setActiveTab] = useState('friends');
@@ -147,7 +149,7 @@ export default function Friends({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16 }]}>Friends</Text>
+      <Text style={[discoverStyles.title, { color: colors.text, marginBottom: 16, fontSize: currentFontSizes.hero }]}>Friends</Text>
 
       <View style={[styles.tabRow, { borderBottomColor: colors.icon + '33' }]}>
         <TouchableOpacity
@@ -155,7 +157,7 @@ export default function Friends({ navigation }) {
           style={[styles.tab, activeTab === 'friends' && [styles.tabActive, { borderBottomColor: colors.tint }]]}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, { color: activeTab === 'friends' ? colors.tint : colors.icon }, activeTab === 'friends' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'friends' ? colors.tint : colors.icon, fontSize: currentFontSizes.base }, activeTab === 'friends' && styles.tabTextActive]}>
             Friends
           </Text>
         </TouchableOpacity>
@@ -164,7 +166,7 @@ export default function Friends({ navigation }) {
           style={[styles.tab, activeTab === 'suggested' && [styles.tabActive, { borderBottomColor: colors.tint }]]}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, { color: activeTab === 'suggested' ? colors.tint : colors.icon }, activeTab === 'suggested' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'suggested' ? colors.tint : colors.icon, fontSize: currentFontSizes.base }, activeTab === 'suggested' && styles.tabTextActive]}>
             Suggested
           </Text>
         </TouchableOpacity>
@@ -191,10 +193,10 @@ export default function Friends({ navigation }) {
             >
               <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
               <View style={styles.rowBody}>
-                <Text style={[styles.rowTitle, { color: colors.text }]}>{friend.name}</Text>
-                <Text style={[styles.rowMeta, { color: colors.icon }]}>{friend.handle}</Text>
+                <Text style={[styles.rowTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{friend.name}</Text>
+                <Text style={[styles.rowMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{friend.handle}</Text>
                 {friend.events.length > 0 && (
-                  <Text style={[styles.rowHint, { color: colors.tint }]}>
+                  <Text style={[styles.rowHint, { color: colors.tint, fontSize: currentFontSizes.caption }]}>
                     {friend.events.length} event{friend.events.length !== 1 ? 's' : ''} · Tap to see
                   </Text>
                 )}
@@ -208,25 +210,25 @@ export default function Friends({ navigation }) {
             <View key={person.id} style={[styles.row, { backgroundColor: cardBg }, cardShadow]}>
               <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
               <View style={styles.rowBody}>
-                <Text style={[styles.rowTitle, { color: colors.text }]}>{person.name}</Text>
-                <Text style={[styles.rowMeta, { color: colors.icon }]}>{person.handle}</Text>
-                <Text style={[styles.rowHint, { color: colors.icon }]}>{person.hint}</Text>
+                <Text style={[styles.rowTitle, { color: colors.text, fontSize: currentFontSizes.subtitle }]}>{person.name}</Text>
+                <Text style={[styles.rowMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{person.handle}</Text>
+                <Text style={[styles.rowHint, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{person.hint}</Text>
               </View>
               <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: colors.tint }]}
                 onPress={() => handleAddFriend(person)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.addButtonText}>Add</Text>
+                <Text style={[styles.addButtonText, { fontSize: currentFontSizes.base }]}>Add</Text>
               </TouchableOpacity>
             </View>
           ))}
 
         {activeTab === 'friends' && friends.length === 0 && (
-          <Text style={[styles.empty, { color: colors.icon }]}>No friends yet. Check Suggested to add people with similar taste.</Text>
+          <Text style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>No friends yet. Check Suggested to add people with similar taste.</Text>
         )}
         {activeTab === 'suggested' && suggested.length === 0 && (
-          <Text style={[styles.empty, { color: colors.icon }]}>No more suggestions right now.</Text>
+          <Text style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>No more suggestions right now.</Text>
         )}
         </>
         )}
@@ -243,7 +245,7 @@ export default function Friends({ navigation }) {
           <Pressable style={[styles.modalContent, { backgroundColor: colors.background }]} onPress={(e) => e.stopPropagation()}>
             <View style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
+              <Text style={[styles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>
                 {selectedFriend?.name}'s events
               </Text>
               <TouchableOpacity onPress={() => setSelectedFriend(null)} hitSlop={12}>
@@ -254,13 +256,13 @@ export default function Friends({ navigation }) {
               {selectedFriend?.events?.length ? (
                 selectedFriend.events.map((ev) => (
                   <View key={ev.id} style={[styles.eventRow, { borderColor: colors.icon + '33' }]}>
-                    <Text style={[styles.eventTitle, { color: colors.text }]}>{ev.title}</Text>
-                    <Text style={[styles.eventMeta, { color: colors.icon }]}>{ev.date}</Text>
-                    <Text style={[styles.eventLocation, { color: colors.icon }]}>{ev.location}</Text>
+                    <Text style={[styles.eventTitle, { color: colors.text, fontSize: currentFontSizes.base }]}>{ev.title}</Text>
+                    <Text style={[styles.eventMeta, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{ev.date}</Text>
+                    <Text style={[styles.eventLocation, { color: colors.icon, fontSize: currentFontSizes.caption }]}>{ev.location}</Text>
                   </View>
                 ))
               ) : (
-                <Text style={[styles.empty, { color: colors.icon }]}>
+                <Text style={[styles.empty, { color: colors.icon, fontSize: currentFontSizes.base }]}>
                   {selectedFriend?.name} isn't going to any events yet.
                 </Text>
               )}
