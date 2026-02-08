@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,12 +8,15 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
 import { discoverStyles } from '../styles/styles';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const cardShadow = Platform.select({
   ios: {
@@ -26,32 +29,120 @@ const cardShadow = Platform.select({
   default: {},
 });
 
-// Dummy data - replace with real data later
-const FRIENDS = [
-  { id: '1', name: 'Jordan Lee', handle: '@jordanlee', events: [{ id: 'e1', title: 'House Show - West Campus', date: 'Sat, Feb 15 · 8:00 PM', location: '2400 Nueces St' }, { id: 'e2', title: 'Open Mic Night', date: 'Fri, Feb 21 · 7:00 PM', location: 'Cactus Cafe' }] },
-  { id: '2', name: 'Sam Chen', handle: '@samchen', events: [{ id: 'e1', title: 'House Show - West Campus', date: 'Sat, Feb 15 · 8:00 PM', location: '2400 Nueces St' }] },
-  { id: '3', name: 'Alex Rivera', handle: '@alexr', events: [] },
-];
-
-const SUGGESTED = [
-  { id: 's1', name: 'Morgan Taylor', handle: '@morgant', hint: 'Similar taste: indie, alternative' },
-  { id: 's2', name: 'Casey Kim', handle: '@caseyk', hint: 'Similar taste: pop, R&B' },
-  { id: 's3', name: 'Riley Jones', handle: '@rileyj', hint: 'Similar taste: rock, folk' },
-];
+function formatEventDate(dateTime) {
+  const d = new Date(dateTime);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const h = d.getHours() % 12 || 12;
+  const m = d.getMinutes();
+  const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
+  return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()} · ${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
 
 export default function Friends({ navigation }) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
+  const { session } = useAuth();
+  const userId = session?.user?.id;
   const [activeTab, setActiveTab] = useState('friends');
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [friends, setFriends] = useState(FRIENDS);
-  const [suggested, setSuggested] = useState(SUGGESTED);
+  const [friends, setFriends] = useState([]);
+  const [suggested, setSuggested] = useState([]);
+  const [loading, setLoading] = useState(true);
   const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
 
-  const handleAddFriend = (person) => {
-    setSuggested((prev) => prev.filter((p) => p.id !== person.id));
-    setFriends((prev) => [...prev, { id: person.id, name: person.name, handle: person.handle, events: [] }]);
+  const loadFriendsAndSuggested = useCallback(async () => {
+    if (!userId) {
+      setFriends([]);
+      setSuggested([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data: followsData } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId);
+      const followingIds = (followsData || []).map((f) => f.following_id);
+
+      if (followingIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name, instagram_handle')
+          .in('id', followingIds);
+        const { data: attData } = await supabase
+          .from('event_attendance')
+          .select('event_id, user_id')
+          .eq('status', 'going')
+          .in('user_id', followingIds);
+        const eventIdsByUser = {};
+        (attData || []).forEach((a) => {
+          if (!eventIdsByUser[a.user_id]) eventIdsByUser[a.user_id] = [];
+          eventIdsByUser[a.user_id].push(a.event_id);
+        });
+        const allEventIds = [...new Set((attData || []).map((a) => a.event_id))];
+        let eventsMap = {};
+        if (allEventIds.length > 0) {
+          const { data: evData } = await supabase.from('events').select('id, title, date_time, location').in('id', allEventIds);
+          (evData || []).forEach((e) => (eventsMap[e.id] = e));
+        }
+        const friendList = (profilesData || []).map((p) => {
+          const evIds = eventIdsByUser[p.id] || [];
+          const events = evIds.map((eid) => {
+            const e = eventsMap[eid];
+            return e ? { id: e.id, title: e.title, date: formatEventDate(e.date_time), location: e.location } : null;
+          }).filter(Boolean);
+          return {
+            id: p.id,
+            name: p.name || 'User',
+            handle: p.instagram_handle ? `@${p.instagram_handle.replace(/^@/, '')}` : '@user',
+            events,
+          };
+        });
+        setFriends(friendList);
+      } else {
+        setFriends([]);
+      }
+
+      const { data: allProfiles } = await supabase.from('profiles').select('id, name, instagram_handle, genres');
+      const suggestedIds = (allProfiles || [])
+        .filter((p) => p.id !== userId && !followingIds.includes(p.id))
+        .slice(0, 20)
+        .map((p) => p.id);
+      if (suggestedIds.length > 0) {
+        const { data: sugProfiles } = await supabase
+          .from('profiles')
+          .select('id, name, instagram_handle, genres')
+          .in('id', suggestedIds);
+        const sugList = (sugProfiles || []).map((p) => ({
+          id: p.id,
+          name: p.name || 'User',
+          handle: p.instagram_handle ? `@${p.instagram_handle.replace(/^@/, '')}` : '@user',
+          hint: (p.genres && p.genres.length) ? `Genres: ${p.genres.join(', ')}` : 'Suggested for you',
+        }));
+        setSuggested(sugList);
+      } else {
+        setSuggested([]);
+      }
+    } catch (e) {
+      console.warn('Friends load:', e);
+      setFriends([]);
+      setSuggested([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    loadFriendsAndSuggested();
+  }, [loadFriendsAndSuggested]);
+
+  const handleAddFriend = async (person) => {
+    if (!userId) return;
+    const { error } = await supabase.from('follows').insert({ follower_id: userId, following_id: person.id });
+    if (!error) await loadFriendsAndSuggested();
   };
 
   return (
@@ -84,6 +175,12 @@ export default function Friends({ navigation }) {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
+        {loading ? (
+          <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+            <ActivityIndicator size="large" />
+          </View>
+        ) : (
+        <>
         {activeTab === 'friends' &&
           friends.map((friend) => (
             <TouchableOpacity
@@ -130,6 +227,8 @@ export default function Friends({ navigation }) {
         )}
         {activeTab === 'suggested' && suggested.length === 0 && (
           <Text style={[styles.empty, { color: colors.icon }]}>No more suggestions right now.</Text>
+        )}
+        </>
         )}
       </ScrollView>
 

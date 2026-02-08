@@ -80,6 +80,7 @@ export default function Profile({ navigation }) {
         if (user?.id) fetchSongs();
     }, [user?.id]);
 
+<<<<<<< HEAD
     // Keep displayed name/handle and artist fields in sync with profile
     useEffect(() => {
         setTempUsername(user?.username ?? '');
@@ -88,6 +89,13 @@ export default function Profile({ navigation }) {
         setTempGenres(Array.isArray(profile?.genres) ? profile.genres.join(', ') : '');
         setTempSimilarArtists(Array.isArray(profile?.similar_artists) ? profile.similar_artists.join(', ') : '');
     }, [user?.username, user?.instagramId, profile?.bio, profile?.genres, profile?.similar_artists]);
+=======
+    // Keep displayed name/handle in sync with logged-in user profile
+    useEffect(() => {
+        setTempUsername(user?.username ?? '');
+        setTempInstagramId(user?.instagramId ?? '');
+    }, [user?.username, user?.instagramId]);
+>>>>>>> 82ba7b40d0013b096d456c525b26d288da69489f
 
     // Add a new song
     const handleAddSong = async () => {

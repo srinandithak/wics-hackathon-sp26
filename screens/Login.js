@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,17 +7,40 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { Colors } from '../constants/theme';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login({ navigation }) {
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const inputBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      Alert.alert('Missing fields', 'Enter email and password.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await signIn(email.trim(), password);
+      // Auth state updates and navigator switches to Main
+    } catch (err) {
+      Alert.alert('Login failed', err.message || 'Check email and password and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -43,6 +66,9 @@ export default function Login({ navigation }) {
             placeholderTextColor={colors.icon}
             keyboardType="email-address"
             autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+            editable={!loading}
           />
           <Text style={[styles.label, { color: colors.icon }]}>Password</Text>
           <TextInput
@@ -53,14 +79,22 @@ export default function Login({ navigation }) {
             placeholder="••••••••"
             placeholderTextColor={colors.icon}
             secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            editable={!loading}
           />
 
           <TouchableOpacity
             style={[styles.button, { backgroundColor: colors.tint }]}
-            onPress={() => navigation.navigate('Main')}
+            onPress={handleLogin}
+            disabled={loading}
             activeOpacity={0.85}
           >
-            <Text style={styles.buttonText}>Log in</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Log in</Text>
+            )}
           </TouchableOpacity>
         </View>
 

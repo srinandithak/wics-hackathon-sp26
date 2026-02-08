@@ -23,6 +23,7 @@ export interface Profile {
   similar_artists: string[] | null;
   genres: string[] | null;
   posts?: string[] | null;  // optional: DB default is []
+  social_media?: Json | null; 
   created_at: string;
 }
 
@@ -64,3 +65,4 @@ export interface Database {
     };
   };
 }
+
