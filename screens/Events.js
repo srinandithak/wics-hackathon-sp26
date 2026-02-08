@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Platform,
   ScrollView,
@@ -21,6 +22,7 @@ import { discoverStyles, DiscoverColors } from '../styles/styles';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { eventRowToUI } from '../lib/eventUtils';
+import { searchGoogleEvents, serpEventToOurEvent } from '../lib/serpApi';
 
 const cardShadow = Platform.select({
   ios: {
@@ -61,6 +63,11 @@ export default function Events({ navigation }) {
   const [createDate, setCreateDate] = useState('');
   const [createTime, setCreateTime] = useState('');
   const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [googleModalVisible, setGoogleModalVisible] = useState(false);
+  const [googleQuery, setGoogleQuery] = useState('');
+  const [googleResults, setGoogleResults] = useState([]);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleAddingId, setGoogleAddingId] = useState(null);
 
   const loadEvents = useCallback(async () => {
     setEventsLoading(true);
@@ -120,9 +127,11 @@ export default function Events({ navigation }) {
     }
   }, [userId]);
 
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+  useFocusEffect(
+    useCallback(() => {
+      loadEvents();
+    }, [loadEvents])
+  );
 
   const events = useMemo(() => {
     if (!searchText.trim()) return eventsRaw;
@@ -134,6 +143,36 @@ export default function Events({ navigation }) {
         (ev.venueType && ev.venueType.toLowerCase().includes(q))
     );
   }, [eventsRaw, searchText]);
+
+  const handleSearchGoogle = async () => {
+    setGoogleLoading(true);
+    setGoogleResults([]);
+    try {
+      const list = await searchGoogleEvents(googleQuery.trim() || 'events near me', { limit: 5 });
+      setGoogleResults(list);
+    } catch (e) {
+      Alert.alert('Search failed', e.message || 'Could not fetch events from Google. Check your API key.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleAddGoogleEvent = async (serpEvent) => {
+    if (!userId) return;
+    const id = serpEvent.link || serpEvent.title;
+    setGoogleAddingId(id);
+    try {
+      const row = serpEventToOurEvent(serpEvent, userId);
+      const { error } = await supabase.from('events').insert(row);
+      if (error) throw error;
+      setGoogleResults((prev) => prev.filter((e) => (e.link || e.title) !== id));
+      loadEvents();
+    } catch (e) {
+      Alert.alert('Could not add event', e.message || 'Try again.');
+    } finally {
+      setGoogleAddingId(null);
+    }
+  };
 
   const handleCreateEvent = async () => {
     if (!createTitle.trim() || !createLocation.trim() || !createDate.trim() || !createTime.trim()) {
@@ -187,13 +226,22 @@ export default function Events({ navigation }) {
       <View style={eventStyles.titleWrap}>
         <Text style={discoverStyles.title}>Discover Events</Text>
         {isArtist && (
-          <TouchableOpacity
-            style={[eventStyles.plusButton, { backgroundColor: colors.tint }]}
-            onPress={() => setCreateModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="add" size={26} color="#fff" />
-          </TouchableOpacity>
+          <View style={eventStyles.titleActions}>
+            <TouchableOpacity
+              style={[eventStyles.fromGoogleButton, { borderColor: colors.tint }]}
+              onPress={() => setGoogleModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Text style={[eventStyles.fromGoogleButtonText, { color: colors.tint }]}>From Google</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[eventStyles.plusButton, { backgroundColor: colors.tint }]}
+              onPress={() => setCreateModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="add" size={26} color="#fff" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
       <View style={discoverStyles.searchWrap}>
@@ -360,6 +408,64 @@ export default function Events({ navigation }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <Modal visible={googleModalVisible} animationType="slide" transparent>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={eventStyles.modalOverlay}>
+          <View style={[eventStyles.modalContent, { backgroundColor: colors.background }]}>
+            <View style={eventStyles.modalHeader}>
+              <Text style={[eventStyles.modalTitle, { color: colors.text }]}>Add from Google</Text>
+              <TouchableOpacity onPress={() => { setGoogleModalVisible(false); setGoogleResults([]); setGoogleQuery(''); }} hitSlop={12}>
+                <Ionicons name="close" size={28} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+            <Text style={[eventStyles.modalLabel, { color: colors.icon }]}>Search for events (e.g. "concerts Austin" or "events this weekend")</Text>
+            <View style={eventStyles.googleSearchRow}>
+              <TextInput
+                style={[eventStyles.modalInput, eventStyles.googleSearchInput, { color: colors.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+                value={googleQuery}
+                onChangeText={setGoogleQuery}
+                placeholder="Events in Austin"
+                placeholderTextColor={colors.icon}
+                onSubmitEditing={handleSearchGoogle}
+              />
+              <TouchableOpacity
+                style={[eventStyles.googleSearchButton, { backgroundColor: colors.tint }]}
+                onPress={handleSearchGoogle}
+                disabled={googleLoading}
+                activeOpacity={0.85}
+              >
+                {googleLoading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={eventStyles.createSubmitText}>Search</Text>}
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={eventStyles.googleResultsScroll} contentContainerStyle={eventStyles.googleResultsContent}>
+              {googleResults.length === 0 && !googleLoading && (
+                <Text style={[eventStyles.googleResultsEmpty, { color: colors.icon }]}>Search to see up to 5 events from Google. Tap Add to add one to the app.</Text>
+              )}
+              {googleResults.map((ev) => {
+                const key = ev.link || ev.title;
+                const adding = googleAddingId === key;
+                const venue = ev.venue?.name || (Array.isArray(ev.address) ? ev.address[0] : '');
+                const when = ev.date?.when || ev.date?.start_date || '';
+                return (
+                  <View key={key} style={[eventStyles.googleResultCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                    <Text style={[eventStyles.googleResultTitle, { color: colors.text }]} numberOfLines={2}>{ev.title}</Text>
+                    {venue ? <Text style={[eventStyles.googleResultMeta, { color: colors.icon }]} numberOfLines={1}>{venue}</Text> : null}
+                    {when ? <Text style={[eventStyles.googleResultMeta, { color: colors.icon }]} numberOfLines={1}>{when}</Text> : null}
+                    <TouchableOpacity
+                      style={[eventStyles.googleResultAddBtn, { backgroundColor: colors.tint }]}
+                      onPress={() => handleAddGoogleEvent(ev)}
+                      disabled={adding}
+                      activeOpacity={0.85}
+                    >
+                      {adding ? <ActivityIndicator color="#fff" size="small" /> : <Text style={eventStyles.createSubmitText}>Add event</Text>}
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -367,15 +473,83 @@ export default function Events({ navigation }) {
 const eventStyles = StyleSheet.create({
   titleWrap: {
     marginBottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+  },
+  titleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+  },
+  fromGoogleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fromGoogleButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   plusButton: {
-    alignSelf: 'flex-end',
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  googleSearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginTop: 8,
+  },
+  googleSearchInput: {
+    flex: 1,
+  },
+  googleSearchButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    minWidth: 90,
+    alignItems: 'center',
+  },
+  googleResultsScroll: {
+    maxHeight: 320,
+    marginTop: 16,
+  },
+  googleResultsContent: {
+    paddingBottom: 24,
+    gap: 12,
+  },
+  googleResultsEmpty: {
+    fontSize: 14,
+    paddingVertical: 20,
+    textAlign: 'center',
+  },
+  googleResultCard: {
+    padding: 14,
+    borderRadius: 12,
+  },
+  googleResultTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  googleResultMeta: {
+    fontSize: 13,
+    marginTop: 4,
+  },
+  googleResultAddBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginTop: 10,
   },
   modalOverlay: {
     flex: 1,

@@ -214,30 +214,32 @@ export default function Profile({ navigation }) {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-                <ScrollView contentContainerStyle={{ padding: 20 }}>
-                    {/* Header */}
+                {/* Fixed header */}
+                <View style={[styles.headerFixed, { backgroundColor: colors.background }]}>
                     <View style={styles.header}>
                         <TouchableOpacity style={styles.iconButton} onPress={openSidebar} activeOpacity={0.7}>
                             <Ionicons name="settings-outline" size={26} color={colors.text} />
                         </TouchableOpacity>
                         <Text style={[styles.title, { color: colors.text, fontSize: currentFontSizes.title }]}>
-                            My Profile
+                            Profile
                         </Text>
                         <TouchableOpacity style={styles.iconButton} onPress={handleLogout} activeOpacity={0.7}>
                             <Ionicons name="log-out-outline" size={26} color={colors.text} />
                         </TouchableOpacity>
                     </View>
+                </View>
 
+                <ScrollView contentContainerStyle={{ padding: 20 }}>
                     {/* Profile Card */}
                     <View style={[styles.profileCard, { backgroundColor: cardBg }, cardShadow]}>
-                        <View style={[styles.avatarWrap, { backgroundColor: colors.tint + '25' }]}>
+                        <View style={styles.avatarWrap}>
                             <View style={[styles.avatar, { backgroundColor: colors.tint }]} />
                             <TouchableOpacity style={[styles.editAvatarBtn, { backgroundColor: colors.tint }]}>
                                 <Ionicons name="camera" size={16} color="#fff" />
                             </TouchableOpacity>
                         </View>
                         <Text style={[styles.name, { color: colors.text, fontSize: currentFontSizes.large }]}>{user.username}</Text>
-                        <Text style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>@{user.instagramId}</Text>
+                        <Text style={[styles.handle, { color: colors.icon, fontSize: currentFontSizes.base }]}>{user.instagramId ? `@${user.instagramId}` : '@'}</Text>
                         {isArtist && (profile?.bio || profile?.genres?.length > 0 || profile?.similar_artists?.length > 0) && (
                             <View style={[styles.artistPreview, { backgroundColor: sectionBg }]}>
                                 {profile?.bio ? (
@@ -329,7 +331,7 @@ export default function Profile({ navigation }) {
                             {userSongs.length === 0 ? (
                                 <View style={[styles.songListEmpty, { backgroundColor: sectionBg }]}>
                                     <Ionicons name="musical-notes-outline" size={28} color={colors.icon + '80'} />
-                                    <Text style={[styles.songListEmptyText, { color: colors.icon, fontSize: currentFontSizes.base }]}>No songs yet — add your favorites above</Text>
+                                    <Text style={[styles.songListEmptyText, { color: colors.icon, fontSize: currentFontSizes.base }]}>No songs yet ...</Text>
                                 </View>
                             ) : (
                                 userSongs.map((song, index) => (
@@ -475,7 +477,8 @@ export default function Profile({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, paddingTop: 12 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+    headerFixed: { paddingHorizontal: 20, paddingBottom: 12 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     iconButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     title: { fontWeight: '800', letterSpacing: -0.5 },
     profileCard: { borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 24 },

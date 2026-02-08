@@ -67,9 +67,10 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
-  const refreshProfile = async () => {
-    if (session?.user?.id) {
-      const p = await fetchProfile(session.user.id);
+  const refreshProfile = async (userIdOverride) => {
+    const uid = userIdOverride ?? session?.user?.id;
+    if (uid) {
+      const p = await fetchProfile(uid);
       setProfile(p);
     }
   };
