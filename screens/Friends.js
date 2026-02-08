@@ -244,15 +244,21 @@ export default function Friends({ navigation }) {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setSelectedFriend(null)}>
           <Pressable style={[styles.modalContent, { backgroundColor: colors.background }]} onPress={(e) => e.stopPropagation()}>
-            <ThemedText style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
-            <ThemedText style={styles.modalHeader}>
+            <View style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
+            <TouchableOpacity
+              onPress={() => setSelectedFriend(null)}
+              style={styles.modalCloseBtn}
+              hitSlop={12}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="close" size={28} color={colors.icon} />
+            </TouchableOpacity>
+
+            <View style={styles.modalHeader}>
               <ThemedText style={[styles.modalTitle, { color: colors.text, fontSize: currentFontSizes.large }]}>
                 {selectedFriend?.name}'s events
               </ThemedText>
-              <TouchableOpacity onPress={() => setSelectedFriend(null)} hitSlop={12}>
-                <Ionicons name="close" size={28} color={colors.icon} />
-              </TouchableOpacity>
-            </ThemedText>
+            </View>
             <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
               {selectedFriend?.events?.length ? (
                 selectedFriend.events.map((ev) => (
@@ -361,6 +367,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
+    paddingTop: 44,
     paddingBottom: 32,
     maxHeight: '70%',
   },
@@ -371,6 +378,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 12,
     marginBottom: 8,
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 6,
+    zIndex: 10,
   },
   modalHeader: {
     flexDirection: 'row',
