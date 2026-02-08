@@ -1,7 +1,11 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -9,22 +13,18 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Modal,
-  Alert,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from '../components/ThemedText';
 import { Colors } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
-import { discoverStyles, DiscoverColors } from '../styles/styles';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import { eventRowToUI } from '../lib/eventUtils';
 import { searchGoogleEvents, serpEventToOurEvent } from '../lib/serpApi';
-import { ThemedText } from '../components/ThemedText';
+import { supabase } from '../lib/supabase';
+import { DiscoverColors, discoverStyles } from '../styles/styles';
 
 const cardShadow = Platform.select({
   ios: {

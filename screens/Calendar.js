@@ -9,12 +9,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from '../components/ThemedText';
 import { Colors } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { discoverStyles } from '../styles/styles';
-import { ThemedText } from '../components/ThemedText';
 
 const cardShadow = Platform.select({
   ios: {

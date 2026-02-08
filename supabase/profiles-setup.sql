@@ -90,7 +90,7 @@ begin
     p_id, coalesce(nullif(trim(p_name), ''), 'User'),
     p_user_type, nullif(trim(p_instagram_handle), ''),
     coalesce(p_genres, '{}'), p_favorite_artists,
-    p_bio, p_profile_image_url, to_jsonb(coalesce(p_similar_artists, '{}'))
+    p_bio, p_profile_image_url, coalesce(p_similar_artists, '{}')
   )
   on conflict (id) do update set
     name = excluded.name,
