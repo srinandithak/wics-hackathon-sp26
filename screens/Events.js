@@ -479,12 +479,15 @@ const eventStyles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+    alignSelf: 'stretch',
+    flexWrap: 'wrap',
   },
   friendsLabel: {
     fontSize: 13,
     fontWeight: '600',
     marginLeft: 6,
+    flex: 1,
+    flexShrink: 1,
   },
   friendCountBadge: {
     marginLeft: 8,

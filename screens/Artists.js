@@ -171,7 +171,7 @@ export default function Artists({ navigation }) {
                   Bio: {selectedArtist?.bio || 'No bio available'}
                 </Text>
                 <Text style={artistStyles.vinylBackText} allowFontScaling={false}>
-                  Genre: {selectedArtist?.genre || 'Unknown'}
+                  Genre: {selectedArtist?.genres?.length ? selectedArtist.genres.join(', ') : 'Unknown'}
                 </Text>
               </View>
             </View>
