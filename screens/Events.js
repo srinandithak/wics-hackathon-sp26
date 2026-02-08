@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Platform,
   ScrollView,
@@ -8,12 +8,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
 import { useConfirmedEvents } from '../contexts/ConfirmedEventsContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { discoverStyles, DiscoverColors } from '../styles/styles';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import { eventRowToUI } from '../lib/eventUtils';
 
 const cardShadow = Platform.select({
   ios: {
@@ -25,14 +29,6 @@ const cardShadow = Platform.select({
   android: { elevation: 3 },
   default: {},
 });
-
-// Dummy events with friend counts – sorted by most friends first
-const EVENTS_RAW = [
-  { id: 'e1', title: 'House Show - West Campus', day: 15, month: 'FEB', time: '8:00 PM', location: '2400 Nueces St', venueType: 'house party', friendsGoing: ['Jordan', 'Sam', 'Alex'] },
-  { id: 'e2', title: 'Open Mic Night', day: 21, month: 'FEB', time: '7:00 PM', location: 'Cactus Cafe', venueType: 'venue', friendsGoing: ['Jordan', 'Sam'] },
-  { id: 'e3', title: 'Indie Night at the Union', day: 22, month: 'FEB', time: '9:00 PM', location: 'Texas Union', venueType: 'venue', friendsGoing: ['Sam'] },
-  { id: 'e4', title: 'Pop-up at Co-op', day: 28, month: 'FEB', time: '6:00 PM', location: 'University Co-op', venueType: 'pop-up', friendsGoing: [] },
-];
 
 function getFriendsLabel(friendsGoing) {
   const n = friendsGoing.length;
@@ -47,20 +43,84 @@ export default function Events({ navigation }) {
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const cardBg = isDark ? 'rgba(255,255,255,0.06)' : '#fff';
+  const { session } = useAuth();
+  const userId = session?.user?.id;
   const { isConfirmed, toggleEvent } = useConfirmedEvents();
   const [searchText, setSearchText] = useState('');
+  const [eventsRaw, setEventsRaw] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setEventsLoading(true);
+      try {
+        const { data: eventsData, error: evError } = await supabase
+          .from('events')
+          .select('*')
+          .order('date_time', { ascending: true });
+
+        if (evError) throw evError;
+        const eventList = eventsData || [];
+
+        let myFollowingIds = [];
+        let profileMap = {};
+        if (userId) {
+          const { data: followsData } = await supabase
+            .from('follows')
+            .select('following_id')
+            .eq('follower_id', userId);
+          myFollowingIds = (followsData || []).map((f) => f.following_id);
+          if (myFollowingIds.length > 0) {
+            const { data: profilesData } = await supabase
+              .from('profiles')
+              .select('id, name')
+              .in('id', myFollowingIds);
+            (profilesData || []).forEach((p) => (profileMap[p.id] = p.name));
+          }
+        }
+
+        const { data: attendanceData } = await supabase
+          .from('event_attendance')
+          .select('event_id, user_id')
+          .eq('status', 'going')
+          .in('event_id', eventList.map((e) => e.id));
+
+        const attendanceByEvent = {};
+        (attendanceData || []).forEach((a) => {
+          if (!attendanceByEvent[a.event_id]) attendanceByEvent[a.event_id] = [];
+          attendanceByEvent[a.event_id].push(a.user_id);
+        });
+
+        const withFriends = eventList.map((row) => {
+          const goingIds = attendanceByEvent[row.id] || [];
+          const friendsGoing = goingIds
+            .filter((id) => myFollowingIds.includes(id))
+            .map((id) => profileMap[id])
+            .filter(Boolean);
+          return eventRowToUI(row, friendsGoing);
+        });
+        const sorted = [...withFriends].sort((a, b) => b.friendsGoing.length - a.friendsGoing.length);
+        setEventsRaw(sorted);
+      } catch (e) {
+        console.warn('Events load:', e);
+        setEventsRaw([]);
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+    load();
+  }, [userId]);
 
   const events = useMemo(() => {
-    const sorted = [...EVENTS_RAW].sort((a, b) => b.friendsGoing.length - a.friendsGoing.length);
-    if (!searchText.trim()) return sorted;
+    if (!searchText.trim()) return eventsRaw;
     const q = searchText.toLowerCase().trim();
-    return sorted.filter(
+    return eventsRaw.filter(
       (ev) =>
         ev.title.toLowerCase().includes(q) ||
         ev.location.toLowerCase().includes(q) ||
-        ev.venueType.toLowerCase().includes(q)
+        (ev.venueType && ev.venueType.toLowerCase().includes(q))
     );
-  }, [searchText]);
+  }, [eventsRaw, searchText]);
 
   return (
     <SafeAreaView style={discoverStyles.container} edges={['top']}>
@@ -80,7 +140,12 @@ export default function Events({ navigation }) {
         contentContainerStyle={discoverStyles.listContent}
         showsVerticalScrollIndicator={false}
       >
-        {events.map((ev) => {
+        {eventsLoading ? (
+          <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+            <ActivityIndicator size="large" />
+          </View>
+        ) : (
+        events.map((ev) => {
           const friendCount = ev.friendsGoing.length;
           const friendsLabel = getFriendsLabel(ev.friendsGoing);
           const imGoing = isConfirmed(ev.id);
@@ -146,7 +211,8 @@ export default function Events({ navigation }) {
               </View>
             </View>
           );
-        })}
+        })
+        )}
       </ScrollView>
     </SafeAreaView>
   );
