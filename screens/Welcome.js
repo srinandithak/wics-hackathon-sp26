@@ -11,7 +11,7 @@ export default function Welcome({ navigation }) {
   return (
     <View style={styles.container}>
       <Vinyl />
-      <Text style={[styles.appName, { fontSize: currentFontSizes.hero * 0.85 }]}>UT.FM</Text>
+      <Text style={[styles.appName, { fontSize: currentFontSizes.hero * 0.85 }]}>UTX.FM</Text>
       <View style={styles.buttons}>
         <TouchableOpacity
           style={styles.primaryButton}
