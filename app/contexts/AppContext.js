@@ -430,3 +430,9 @@ export const useApp = () => {
   }
   return context;
 };
+
+// Default export to satisfy expo-router's requirement for route files under `app/`.
+// This component is intentionally a no-op and should not be used in app UI.
+export default function AppContextRoute() {
+  return null;
+}

@@ -8,19 +8,19 @@ import {
     Platform,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedText } from '../components/ThemedText';
+import { ThemedText } from '../components/themed-text';
 import { Colors } from '../constants/theme';
-import { useApp } from '../app/contexts/AppContext';
+import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useColorScheme } from '../hooks/use-color-scheme';
 import { supabase } from '../lib/supabase';
-import { Switch } from 'react-native';
 
 const cardShadow = Platform.select({
     ios: {

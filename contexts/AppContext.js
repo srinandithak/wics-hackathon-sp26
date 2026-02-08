@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -15,6 +16,30 @@ const defaultFontSizes = {
 export function AppProvider({ children }) {
   const { profile, signOut: authSignOut, refreshProfile } = useAuth();
   const [currentFontSizes] = useState(defaultFontSizes);
+  const [isDyslexicMode, setIsDyslexicMode] = useState(false);
+
+  // Load saved dyslexic mode
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('dyslexicMode');
+        if (saved !== null) setIsDyslexicMode(JSON.parse(saved));
+      } catch (err) {
+        console.error('Error loading dyslexic mode:', err);
+      }
+    };
+    load();
+  }, []);
+
+  const toggleDyslexicMode = async () => {
+    const next = !isDyslexicMode;
+    setIsDyslexicMode(next);
+    try {
+      await AsyncStorage.setItem('dyslexicMode', JSON.stringify(next));
+    } catch (err) {
+      console.error('Error saving dyslexic mode:', err);
+    }
+  };
 
   const user = profile
     ? {
@@ -45,6 +70,8 @@ export function AppProvider({ children }) {
     updateUser,
     logout,
     currentFontSizes,
+    isDyslexicMode,
+    toggleDyslexicMode,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
